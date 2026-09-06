@@ -116,9 +116,9 @@ const Banner = () => {
 
   if (loading) {
     return (
-      <section className="relative min-h-[620px] overflow-hidden bg-[#0d1118] sm:min-h-[680px]">
+      <section className="home-hero relative min-h-[620px] overflow-hidden bg-[#0d1118] sm:min-h-[680px]">
         <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-gray-900 via-gray-950 to-black" />
-        <div className="relative mx-auto flex min-h-[620px] max-w-[1600px] items-end px-5 pb-24 pt-20 sm:min-h-[680px] sm:px-8 lg:items-center lg:pb-20">
+        <div className="home-hero-content relative mx-auto flex min-h-[620px] max-w-[1600px] items-end px-5 pb-24 pt-20 sm:min-h-[680px] sm:px-8 lg:items-center lg:pb-20">
           <div className="w-full max-w-2xl">
             <div className="mb-5 h-5 w-40 rounded-full bg-white/10" />
             <div className="mb-4 h-14 w-4/5 rounded-xl bg-white/10 sm:h-20" />
@@ -143,7 +143,7 @@ const Banner = () => {
 
   return (
     <section
-      className="relative isolate min-h-[620px] overflow-hidden bg-[#0d1118] text-white sm:min-h-[680px]"
+      className="home-hero relative isolate min-h-[620px] overflow-hidden bg-[#0d1118] text-white sm:min-h-[680px]"
       aria-labelledby="flickmuse-discovery-title"
     >
       {backdropUrl ? (
@@ -164,7 +164,7 @@ const Banner = () => {
 
       <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#080a0f]/55 to-transparent" />
 
-      <div className="relative mx-auto flex min-h-[620px] max-w-[1600px] items-end px-5 pb-24 pt-20 sm:min-h-[680px] sm:px-8 sm:pb-28 lg:items-center lg:pb-20">
+      <div className="home-hero-content relative mx-auto flex min-h-[620px] max-w-[1600px] items-end px-5 pb-24 pt-20 sm:min-h-[680px] sm:px-8 sm:pb-28 lg:items-center lg:pb-20">
         <div className="max-w-3xl">
           <div className="mb-5 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.22em] text-red-400 sm:text-sm">
             <span className="h-px w-8 bg-red-500" />

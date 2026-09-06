@@ -76,6 +76,28 @@ button:disabled {
   }
 }
 
+.route-transition {
+  animation: route-fade 180ms ease-out both;
+}
+
+@keyframes route-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .movie-hero,
+  .movie-hero-content,
+  .home-hero,
+  .home-hero-content {
+    min-height: 430px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-transition { animation: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

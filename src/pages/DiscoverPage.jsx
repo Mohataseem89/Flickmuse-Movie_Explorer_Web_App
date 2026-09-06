@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import { discoverMovies, getMovieGenres } from "../api/tmdb";
 import MovieResultsGrid from "../components/MovieResultsGrid";
 import Pagination from "../components/Pagination";
+import FilterChipGroup from "../components/FilterChipGroup";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 
 const sortOptions = [
@@ -12,9 +13,6 @@ const sortOptions = [
   { value: "primary_release_date.desc", label: "Newest releases" },
   { value: "revenue.desc", label: "Highest grossing" },
 ];
-
-const controlClass =
-  "min-h-12 w-full rounded-xl border border-white/10 bg-[#11151c] px-4 text-sm font-semibold text-gray-100 outline-none transition-colors focus:border-red-500 focus:ring-2 focus:ring-red-500/20";
 
 export default function DiscoverPage({
   watchlist,
@@ -102,6 +100,14 @@ export default function DiscoverPage({
     { length: 60 },
     (_, index) => new Date().getFullYear() + 1 - index
   );
+  const genreOptions = [{ value: "", label: "All genres" }, ...genres.map((genre) => ({ value: genre.id, label: genre.name }))];
+  const yearOptions = [{ value: "", label: "Any year" }, ...years.map((year) => ({ value: year, label: String(year) }))];
+  const ratingOptions = [
+    { value: "", label: "Any rating" },
+    { value: "6", label: "6+ / 10" },
+    { value: "7", label: "7+ / 10" },
+    { value: "8", label: "8+ / 10" },
+  ];
 
   return (
     <section className="min-h-[75vh] bg-[#080a0f] py-12 text-white sm:py-16">
@@ -122,70 +128,15 @@ export default function DiscoverPage({
             <SlidersHorizontal className="h-4 w-4 text-red-400" aria-hidden="true" />
             Refine results
           </div>
-          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            <label className="text-xs font-bold uppercase tracking-wider text-gray-500">
-              Genre
-              <select
-                value={filters.genre}
-                onChange={(event) => updateFilter("genre", event.target.value)}
-                className={controlClass + " mt-2 normal-case tracking-normal"}
-              >
-                <option value="">All genres</option>
-                {genres.map((genre) => (
-                  <option key={genre.id} value={genre.id}>
-                    {genre.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="text-xs font-bold uppercase tracking-wider text-gray-500">
-              Release year
-              <select
-                value={filters.year}
-                onChange={(event) => updateFilter("year", event.target.value)}
-                className={controlClass + " mt-2 normal-case tracking-normal"}
-              >
-                <option value="">Any year</option>
-                {years.map((year) => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
-            </label>
-
-            <label className="text-xs font-bold uppercase tracking-wider text-gray-500">
-              Minimum rating
-              <select
-                value={filters.minimumRating}
-                onChange={(event) => updateFilter("rating", event.target.value)}
-                className={controlClass + " mt-2 normal-case tracking-normal"}
-              >
-                <option value="">Any rating</option>
-                <option value="6">6+ / 10</option>
-                <option value="7">7+ / 10</option>
-                <option value="8">8+ / 10</option>
-              </select>
-            </label>
-
-            <label className="text-xs font-bold uppercase tracking-wider text-gray-500">
-              Sort by
-              <select
-                value={filters.sortBy}
-                onChange={(event) => updateFilter("sort", event.target.value)}
-                className={controlClass + " mt-2 normal-case tracking-normal"}
-              >
-                {sortOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-
+          <div className="mt-5 grid gap-5">
+            <FilterChipGroup label="Genre" value={filters.genre} options={genreOptions} onChange={(value) => updateFilter("genre", value)} />
+            <FilterChipGroup label="Release year" value={filters.year} options={yearOptions} onChange={(value) => updateFilter("year", value)} />
+            <FilterChipGroup label="Minimum rating" value={filters.minimumRating} options={ratingOptions} onChange={(value) => updateFilter("rating", value)} />
+            <FilterChipGroup label="Sort by" value={filters.sortBy} options={sortOptions} onChange={(value) => updateFilter("sort", value)} />
             <button
               type="button"
               onClick={clearFilters}
-              className="mt-auto inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/10 px-4 text-sm font-bold text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
+              className="inline-flex min-h-11 w-fit items-center justify-center gap-2 rounded-xl border border-white/10 px-4 text-sm font-bold text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
             >
               <RotateCcw className="h-4 w-4" aria-hidden="true" />
               Reset filters

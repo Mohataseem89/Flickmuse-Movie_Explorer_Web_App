@@ -5,6 +5,7 @@ import Navbar from "./components/Navbar";
 import PageLoader from "./components/PageLoader";
 import ScrollToTop from "./components/ScrollToTop";
 import Toast from "./components/Toast";
+import RouteTransition from "./components/RouteTransition";
 import { useWatchlist } from "./hooks/useWatchlist";
 
 const HomePage = lazy(() => import("./pages/HomePage"));
@@ -57,7 +58,8 @@ function App() {
 
       <main id="main-content" tabIndex="-1" className="outline-none">
         <Suspense fallback={<PageLoader />}>
-          <Routes>
+          <RouteTransition>
+            <Routes>
             <Route path="/" element={<HomePage {...discoveryProps} />} />
             <Route path="/discover" element={<DiscoverPage {...discoveryProps} />} />
             <Route path="/search" element={<SearchPage {...discoveryProps} />} />
@@ -73,7 +75,8 @@ function App() {
             <Route path="/movie/:id" element={<MovieDetails {...discoveryProps} />} />
             <Route path="/person/:id" element={<PersonDetails {...discoveryProps} />} />
             <Route path="*" element={<NotFoundPage />} />
-          </Routes>
+            </Routes>
+          </RouteTransition>
         </Suspense>
       </main>
 

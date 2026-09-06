@@ -217,7 +217,7 @@ export default function MovieDetails({
 
   return (
     <article className="min-h-screen bg-[#080a0f] text-white">
-      <header className="relative isolate min-h-[560px] overflow-hidden sm:min-h-[640px]">
+      <header className="movie-hero relative isolate min-h-[560px] overflow-hidden sm:min-h-[640px]">
         {backdropUrl ? (
           <img
             src={smallBackdropUrl}
@@ -233,7 +233,7 @@ export default function MovieDetails({
         )}
         <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#080a0f]/60 to-transparent" />
 
-        <div className="relative mx-auto flex min-h-[560px] max-w-[1600px] flex-col px-5 py-8 sm:min-h-[640px] sm:px-8">
+        <div className="movie-hero-content relative mx-auto flex min-h-[560px] max-w-[1600px] flex-col px-5 py-8 sm:min-h-[640px] sm:px-8">
           <button
             type="button"
             onClick={() => navigate(-1)}

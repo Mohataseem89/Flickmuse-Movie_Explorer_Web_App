@@ -1,12 +1,12 @@
-import { ArrowLeft, CalendarDays, Film, MapPin } from "lucide-react";
+import { ArrowLeft, CalendarDays, Film, MapPin, Star } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   getImageUrl,
   getPersonDetails,
   getPersonMovieCredits,
 } from "../api/tmdb";
-import MovieResultsGrid from "../components/MovieResultsGrid";
+import MovieCards from "../components/MovieCards";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { textForMeta } from "../seo/site";
 
@@ -75,6 +75,15 @@ export default function PersonDetails({
     return [...unique.values()].slice(0, 12);
   }, [credits]);
 
+  const filmography = useMemo(
+    () =>
+      [...credits]
+        .filter((movie) => movie.poster_path)
+        .sort((a, b) => (b.release_date || "").localeCompare(a.release_date || ""))
+        .slice(0, 30),
+    [credits]
+  );
+
   if (loading) {
     return (
       <div className="min-h-[75vh] animate-pulse bg-[#080a0f] px-5 py-16 sm:px-8">
@@ -104,7 +113,7 @@ export default function PersonDetails({
   const profileUrl = getImageUrl(person.profile_path, "h632");
 
   return (
-    <article className="min-h-[75vh] bg-[#080a0f] py-10 text-white sm:py-14">
+    <article className="min-h-[75vh] bg-[#080a0f] py-8 text-white sm:py-10">
       <div className="mx-auto max-w-[1600px] px-5 sm:px-8">
         <button
           type="button"
@@ -115,9 +124,10 @@ export default function PersonDetails({
           Back
         </button>
 
-        <div className="mt-8 grid gap-8 md:grid-cols-[260px_minmax(0,1fr)] lg:grid-cols-[320px_minmax(0,1fr)] lg:gap-12">
-          <div>
-            <div className="aspect-[2/3] overflow-hidden rounded-3xl border border-white/10 bg-[#11151c]">
+        <div className="mt-6 overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-[#171c27] via-[#0e121a] to-[#080a0f] p-5 sm:p-8 lg:p-10">
+          <div className="grid gap-8 md:grid-cols-[260px_minmax(0,1fr)] lg:grid-cols-[320px_minmax(0,1fr)] lg:gap-12">
+          <div className="mx-auto w-full max-w-[320px] md:mx-0">
+            <div className="aspect-[2/3] overflow-hidden rounded-3xl border border-white/10 bg-[#11151c] shadow-2xl shadow-black/40">
               {profileUrl ? (
                 <img
                   src={profileUrl}
@@ -134,7 +144,7 @@ export default function PersonDetails({
             </div>
           </div>
 
-          <div className="pt-1">
+          <div className="flex flex-col justify-center py-2">
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-red-400">
               {person.known_for_department || "Film professional"}
             </p>
@@ -159,30 +169,47 @@ export default function PersonDetails({
               )}
             </dl>
 
-            <section className="mt-9" aria-labelledby="biography-title">
+            <section className="mt-9 max-w-4xl" aria-labelledby="biography-title">
               <h2 id="biography-title" className="text-2xl font-black">Biography</h2>
               <p className="mt-4 max-w-4xl whitespace-pre-line leading-8 text-gray-300">
                 {person.biography || "No biography is currently available."}
               </p>
             </section>
           </div>
+          </div>
         </div>
 
-        <section className="mt-16 border-t border-white/10 pt-14" aria-labelledby="known-for-title">
+        <section className="mt-16" aria-labelledby="known-for-title">
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-red-400">
             Filmography highlights
           </p>
           <h2 id="known-for-title" className="mt-3 text-3xl font-black tracking-[-0.04em] sm:text-4xl">
             Known for
           </h2>
-          <MovieResultsGrid
-            movies={knownFor}
-            loading={false}
-            emptyMessage="No movie credits are available."
-            watchlist={watchlist}
-            handleAddToWatchlist={handleAddToWatchlist}
-            handleRemoveFromWatchlist={handleRemoveFromWatchlist}
-          />
+          {knownFor.length ? (
+            <div className="movie-row mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-5 sm:gap-5">
+              {knownFor.map((movie) => (
+                <div key={movie.id} className="w-[42vw] max-w-[190px] shrink-0 snap-start sm:w-[190px]">
+                  <MovieCards movie={movie} watchlist={watchlist} handleAddToWatchlist={handleAddToWatchlist} handleRemoveFromWatchlist={handleRemoveFromWatchlist} />
+                </div>
+              ))}
+            </div>
+          ) : <p className="mt-5 text-gray-400">No movie credits are available.</p>}
+        </section>
+
+        <section className="mt-14 border-t border-white/10 pt-14" aria-labelledby="filmography-title">
+          <p className="text-xs font-bold uppercase tracking-[0.22em] text-red-400">Selected credits</p>
+          <h2 id="filmography-title" className="mt-3 text-3xl font-black tracking-[-0.04em] sm:text-4xl">Filmography</h2>
+          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
+            {filmography.map((movie) => (
+              <Link key={movie.credit_id || movie.id} to={'/movie/' + movie.id} className="group rounded-2xl border border-white/10 bg-white/[0.03] p-2 transition hover:-translate-y-1 hover:border-white/25 hover:bg-white/[0.07] focus:outline-none focus:ring-2 focus:ring-red-500">
+                <img src={getImageUrl(movie.poster_path, 'w342')} alt={'View ' + movie.title} loading="lazy" className="aspect-[2/3] w-full rounded-xl object-cover" />
+                <p className="mt-3 truncate font-bold text-white">{movie.title}</p>
+                <p className="mt-1 truncate text-xs text-gray-400">{movie.character || movie.release_date?.slice(0, 4) || 'Movie credit'}</p>
+                {movie.vote_average > 0 && <p className="mt-2 flex items-center gap-1 text-xs font-bold text-amber-300"><Star className="h-3.5 w-3.5 fill-current" aria-hidden="true" />{movie.vote_average.toFixed(1)}</p>}
+              </Link>
+            ))}
+          </div>
         </section>
       </div>
     </article>
