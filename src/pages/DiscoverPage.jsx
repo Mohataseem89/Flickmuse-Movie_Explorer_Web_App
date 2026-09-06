@@ -228,8 +228,8 @@ export default function DiscoverPage({
             pageNo={filters.page}
             loading={loading}
             hasNextPage={filters.page < totalPages}
-            handleprevpage={() => updatePage(Math.max(1, filters.page - 1))}
-            handlenextpage={() => updatePage(Math.min(totalPages, filters.page + 1))}
+            handlePreviousPage={() => updatePage(Math.max(1, filters.page - 1))}
+            handleNextPage={() => updatePage(Math.min(totalPages, filters.page + 1))}
           />
         )}
       </div>

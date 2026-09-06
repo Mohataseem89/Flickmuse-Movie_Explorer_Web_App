@@ -1,6 +1,7 @@
 import { readJson, writeJson } from "./storage.js";
 
-export const WATCHLIST_STORAGE_KEY = "moviesapp";
+export const WATCHLIST_STORAGE_KEY = "FlickMuse_watchlist";
+const LEGACY_WATCHLIST_STORAGE_KEY = "moviesapp";
 
 export function normalizeWatchlist(value) {
   if (!Array.isArray(value)) return [];
@@ -16,7 +17,19 @@ export function normalizeWatchlist(value) {
 }
 
 export function loadWatchlist(storage = window.localStorage) {
-  return normalizeWatchlist(readJson(WATCHLIST_STORAGE_KEY, [], storage));
+  const currentWatchlist = normalizeWatchlist(
+    readJson(WATCHLIST_STORAGE_KEY, [], storage)
+  );
+  if (currentWatchlist.length > 0) return currentWatchlist;
+
+  const legacyWatchlist = normalizeWatchlist(
+    readJson(LEGACY_WATCHLIST_STORAGE_KEY, [], storage)
+  );
+  if (legacyWatchlist.length === 0) return currentWatchlist;
+
+  writeJson(WATCHLIST_STORAGE_KEY, legacyWatchlist, storage);
+  storage.removeItem(LEGACY_WATCHLIST_STORAGE_KEY);
+  return legacyWatchlist;
 }
 
 export function saveWatchlist(watchlist, storage = window.localStorage) {

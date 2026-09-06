@@ -36,4 +36,4 @@ jobs:
       - name: Run quality gate
         run: npm run check
         env:
-          VITE_TMDB_API_KEY: ci-placeholder-key
+          API_KEY: ci-placeholder-key

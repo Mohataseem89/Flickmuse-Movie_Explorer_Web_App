@@ -112,6 +112,16 @@ export default function MovieDetails({
               dateCreated: movie.release_date || undefined,
               duration: movie.runtime ? "PT" + movie.runtime + "M" : undefined,
               genre: movie.genres?.map((genre) => genre.name),
+              aggregateRating:
+                Number.isFinite(movie.vote_average) && movie.vote_count > 0
+                  ? {
+                      "@type": "AggregateRating",
+                      ratingValue: movie.vote_average.toFixed(1),
+                      ratingCount: movie.vote_count,
+                      bestRating: 10,
+                      worstRating: 0,
+                    }
+                  : undefined,
             },
             {
               "@type": "BreadcrumbList",

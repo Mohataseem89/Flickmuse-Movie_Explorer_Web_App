@@ -128,8 +128,8 @@ const Movies = ({
             pageNo={pageNo}
             currentPage={pageNo}
             loading={loading}
-            handleprevpage={handlePreviousPage}
-            handlenextpage={handleNextPage}
+            handlePreviousPage={handlePreviousPage}
+            handleNextPage={handleNextPage}
           />
         )}
       </div>

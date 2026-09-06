@@ -9,7 +9,7 @@ Thank you for improving FlickMuse
 1. Install Node.js 20 or newer.
 2. Run `npm install`.
 3. Copy `.env.example` to `.env`.
-4. Add a valid `VITE_TMDB_API_KEY`.
+4. Add a valid `API_KEY`.
 5. Run `npm run dev`.
 
 ## Before opening a pull request
