@@ -4,7 +4,7 @@ export default function FilterChipGroup({ label, value, options, onChange }) {
       <legend className="text-xs font-bold uppercase tracking-wider text-gray-500">
         {label}
       </legend>
-      <div className="mt-2 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:thin]">
+      <div className="mt-2 flex flex-wrap gap-2 sm:flex-nowrap sm:overflow-x-auto sm:pb-1 sm:[scrollbar-width:thin]">
         {options.map((option) => {
           const selected = String(value) === String(option.value);
           return (

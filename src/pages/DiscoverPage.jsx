@@ -1,4 +1,4 @@
-import { RotateCcw, SlidersHorizontal } from "lucide-react";
+import { ChevronDown, RotateCcw, SlidersHorizontal } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { discoverMovies, getMovieGenres } from "../api/tmdb";
@@ -101,7 +101,6 @@ export default function DiscoverPage({
     (_, index) => new Date().getFullYear() + 1 - index
   );
   const genreOptions = [{ value: "", label: "All genres" }, ...genres.map((genre) => ({ value: genre.id, label: genre.name }))];
-  const yearOptions = [{ value: "", label: "Any year" }, ...years.map((year) => ({ value: year, label: String(year) }))];
   const ratingOptions = [
     { value: "", label: "Any rating" },
     { value: "6", label: "6+ / 10" },
@@ -130,13 +129,26 @@ export default function DiscoverPage({
           </div>
           <div className="mt-5 grid gap-5">
             <FilterChipGroup label="Genre" value={filters.genre} options={genreOptions} onChange={(value) => updateFilter("genre", value)} />
-            <FilterChipGroup label="Release year" value={filters.year} options={yearOptions} onChange={(value) => updateFilter("year", value)} />
+            <label className="block max-w-sm text-xs font-bold uppercase tracking-wider text-gray-500">
+              Release year
+              <span className="relative mt-2 block">
+                <select
+                  value={filters.year}
+                  onChange={(event) => updateFilter("year", event.target.value)}
+                  className="min-h-11 w-full appearance-none rounded-xl border border-white/10 bg-white/[0.04] px-4 pr-11 text-sm font-bold normal-case tracking-normal text-gray-100 outline-none transition-colors hover:border-white/20 focus:border-red-500 focus:ring-2 focus:ring-red-500/30"
+                >
+                  <option value="">Any year</option>
+                  {years.map((year) => <option key={year} value={year}>{year}</option>)}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" aria-hidden="true" />
+              </span>
+            </label>
             <FilterChipGroup label="Minimum rating" value={filters.minimumRating} options={ratingOptions} onChange={(value) => updateFilter("rating", value)} />
             <FilterChipGroup label="Sort by" value={filters.sortBy} options={sortOptions} onChange={(value) => updateFilter("sort", value)} />
             <button
               type="button"
               onClick={clearFilters}
-              className="inline-flex min-h-11 w-fit items-center justify-center gap-2 rounded-xl border border-white/10 px-4 text-sm font-bold text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/10 px-4 text-sm font-bold text-gray-300 transition-colors hover:bg-white/10 hover:text-white sm:w-fit"
             >
               <RotateCcw className="h-4 w-4" aria-hidden="true" />
               Reset filters
