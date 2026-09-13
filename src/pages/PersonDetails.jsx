@@ -155,14 +155,14 @@ export default function PersonDetails({
             <dl className="mt-6 flex flex-wrap gap-3 text-sm text-gray-300">
               {person.birthday && (
                 <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2">
-                  <CalendarDays className="h-4 w-4 text-gray-500" aria-hidden="true" />
+                  <CalendarDays className="h-4 w-4 text-gray-400" aria-hidden="true" />
                   <dt className="sr-only">Born</dt>
                   <dd>{person.birthday}{person.deathday ? " — " + person.deathday : ""}</dd>
                 </div>
               )}
               {person.place_of_birth && (
                 <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2">
-                  <MapPin className="h-4 w-4 text-gray-500" aria-hidden="true" />
+                  <MapPin className="h-4 w-4 text-gray-400" aria-hidden="true" />
                   <dt className="sr-only">Place of birth</dt>
                   <dd>{person.place_of_birth}</dd>
                 </div>

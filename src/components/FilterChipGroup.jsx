@@ -1,7 +1,7 @@
 export default function FilterChipGroup({ label, value, options, onChange }) {
   return (
     <fieldset>
-      <legend className="text-xs font-bold uppercase tracking-wider text-gray-500">
+      <legend className="text-xs font-bold uppercase tracking-wider text-gray-400">
         {label}
       </legend>
       <div className="mt-2 flex flex-wrap gap-2 sm:flex-nowrap sm:overflow-x-auto sm:pb-1 sm:[scrollbar-width:thin]">

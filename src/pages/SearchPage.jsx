@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import { searchTitles } from "../api/tmdb";
 import MovieResultsGrid from "../components/MovieResultsGrid";
 import Pagination from "../components/Pagination";
+import ResultsAnnouncer from "../components/ResultsAnnouncer";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { saveRecentSearch } from "../utils/searchHistory";
 
@@ -97,11 +98,18 @@ const SearchPage = ({
             “{query}”
           </h1>
           {!loading && !error && (
-            <p className="mt-3 text-sm text-gray-500">
+            <p className="mt-3 text-sm text-gray-400">
               {totalResults.toLocaleString()} results found
             </p>
           )}
         </header>
+
+        <ResultsAnnouncer
+          loading={loading}
+          page={page}
+          count={totalResults}
+          label={"search results for " + query}
+        />
 
         {error ? (
           <div className="rounded-3xl border border-red-500/20 bg-red-950/20 p-8 text-center text-gray-300">

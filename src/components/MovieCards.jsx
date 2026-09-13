@@ -41,7 +41,7 @@ const MovieCards = ({
               className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.025]"
             />
           ) : (
-            <span className="flex h-full w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-gray-800 to-gray-950 px-4 text-center text-gray-500">
+            <span className="flex h-full w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-gray-800 to-gray-950 px-4 text-center text-gray-400">
               <Film className="h-10 w-10" aria-hidden="true" />
               <span className="text-sm font-semibold">Poster unavailable</span>
             </span>
@@ -85,7 +85,7 @@ const MovieCards = ({
         >
           <span className="line-clamp-2 min-h-10">{title}</span>
         </Link>
-        <div className="mt-1.5 flex items-center justify-between gap-2 text-xs font-medium text-gray-500 sm:text-sm">
+        <div className="mt-1.5 flex items-center justify-between gap-2 text-xs font-medium text-gray-400 sm:text-sm">
           <span>{releaseYear}</span>
           <span className="flex items-center gap-1 text-gray-300">
             <Star

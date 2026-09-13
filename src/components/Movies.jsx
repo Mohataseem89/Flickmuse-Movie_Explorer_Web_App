@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { getPopularMovies } from "../api/tmdb";
 import MovieCards from "./MovieCards";
 import Pagination from "./Pagination";
+import ResultsAnnouncer from "./ResultsAnnouncer";
 
 const MovieCardSkeleton = () => (
   <div aria-hidden="true">
@@ -83,6 +84,13 @@ const Movies = ({
               favorites for later.
             </p>
           </div>
+
+        <ResultsAnnouncer
+          loading={loading}
+          page={pageNo}
+          count={movies.length}
+          label="popular movies"
+        />
 
           <div className="flex items-center gap-2 self-start rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-semibold text-gray-400 sm:self-auto">
             <Film className="h-4 w-4 text-red-400" aria-hidden="true" />

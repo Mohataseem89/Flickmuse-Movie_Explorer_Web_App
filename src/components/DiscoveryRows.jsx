@@ -109,7 +109,7 @@ export default function DiscoveryRows({
         <div className="mt-12 space-y-14 sm:space-y-16">
           {collections.map((collection) => (
             <section key={collection.key} aria-labelledby={collection.key + "-title"}>
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-500">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">
                 {collection.eyebrow}
               </p>
               <h3

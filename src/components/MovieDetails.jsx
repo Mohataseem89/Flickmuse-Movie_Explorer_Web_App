@@ -338,7 +338,7 @@ export default function MovieDetails({
           </section>
 
           <section className="mt-9" aria-labelledby="genres-title">
-            <h2 id="genres-title" className="text-sm font-bold uppercase tracking-[0.18em] text-gray-500">
+            <h2 id="genres-title" className="text-sm font-bold uppercase tracking-[0.18em] text-gray-400">
               Genres
             </h2>
             <div className="mt-3 flex flex-wrap gap-2">
@@ -355,24 +355,24 @@ export default function MovieDetails({
           </section>
 
           <section className="mt-9" aria-labelledby="where-to-watch-title">
-            <h2 id="where-to-watch-title" className="text-sm font-bold uppercase tracking-[0.18em] text-gray-500">Where to watch in India</h2>
+            <h2 id="where-to-watch-title" className="text-sm font-bold uppercase tracking-[0.18em] text-gray-400">Where to watch in India</h2>
             {providers.length ? <div className="mt-3 flex flex-wrap gap-3">{providers.map((provider) => <a key={provider.provider_id} href={providerData.link} target="_blank" rel="noreferrer" className="group flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] p-2 pr-3 text-sm font-bold text-gray-200 transition hover:border-white/25 hover:bg-white/[0.08]"><img src={getImageUrl(provider.logo_path, "w92")} alt="" width="36" height="36" className="h-9 w-9 rounded-lg object-cover" />{provider.provider_name}</a>)}</div> : <p className="mt-3 text-sm leading-6 text-gray-400">Streaming availability is not currently listed for India.</p>}
           </section>
 
           <dl className="mt-9 grid gap-3 sm:grid-cols-3">
             <div className="rounded-2xl border border-white/10 bg-[#11151c] p-5">
-              <dt className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-500">
+              <dt className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-400">
                 <Globe2 className="h-4 w-4" aria-hidden="true" />
                 Language
               </dt>
               <dd className="mt-2 font-bold">{movie.original_language?.toUpperCase() || "N/A"}</dd>
             </div>
             <div className="rounded-2xl border border-white/10 bg-[#11151c] p-5">
-              <dt className="text-xs font-bold uppercase tracking-wider text-gray-500">Release date</dt>
+              <dt className="text-xs font-bold uppercase tracking-wider text-gray-400">Release date</dt>
               <dd className="mt-2 font-bold">{movie.release_date || "Not available"}</dd>
             </div>
             <div className="rounded-2xl border border-white/10 bg-[#11151c] p-5">
-              <dt className="text-xs font-bold uppercase tracking-wider text-gray-500">Audience votes</dt>
+              <dt className="text-xs font-bold uppercase tracking-wider text-gray-400">Audience votes</dt>
               <dd className="mt-2 font-bold">{movie.vote_count?.toLocaleString() || "Not available"}</dd>
             </div>
           </dl>
@@ -410,7 +410,7 @@ export default function MovieDetails({
                       )}
                     </span>
                     <span className="mt-3 block font-bold text-gray-100 group-hover:text-red-400">{person.name}</span>
-                    <span className="mt-1 line-clamp-2 block text-sm text-gray-500">{person.character || "Cast member"}</span>
+                    <span className="mt-1 line-clamp-2 block text-sm text-gray-400">{person.character || "Cast member"}</span>
                   </Link>
                 );
               })}
@@ -427,7 +427,7 @@ export default function MovieDetails({
                       className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 transition-colors hover:border-red-500/40"
                     >
                       <span className="block font-bold text-gray-100">{person.name}</span>
-                      <span className="mt-0.5 block text-xs text-gray-500">{person.job}</span>
+                      <span className="mt-0.5 block text-xs text-gray-400">{person.job}</span>
                     </Link>
                   ))}
                 </div>

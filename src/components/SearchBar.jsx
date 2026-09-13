@@ -127,7 +127,7 @@ const SearchBar = ({ compact = false, onNavigate }) => {
         <label className="relative block">
           <span className="sr-only">Search movies and TV shows</span>
           <Search
-            className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500"
+            className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-400"
             aria-hidden="true"
           />
           <input
@@ -162,7 +162,7 @@ const SearchBar = ({ compact = false, onNavigate }) => {
                 setSuggestions([]);
                 setActiveIndex(-1);
               }}
-              className="absolute right-1.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-white/10 hover:text-white"
+              className="absolute right-1.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-white/10 hover:text-white"
               aria-label="Clear movie search"
             >
               <X className="h-4 w-4" aria-hidden="true" />
@@ -178,7 +178,7 @@ const SearchBar = ({ compact = false, onNavigate }) => {
         >
           {loading && (
             <div
-              className="flex items-center gap-3 px-3 py-4 text-sm text-gray-500"
+              className="flex items-center gap-3 px-3 py-4 text-sm text-gray-400"
               role="status"
               aria-live="polite"
             >
@@ -220,7 +220,7 @@ const SearchBar = ({ compact = false, onNavigate }) => {
                             className="h-full w-full object-cover"
                           />
                         ) : (
-                          <span className="flex h-full items-center justify-center text-gray-600">
+                          <span className="flex h-full items-center justify-center text-gray-400">
                             <Film className="h-4 w-4" aria-hidden="true" />
                           </span>
                         )}
@@ -229,7 +229,7 @@ const SearchBar = ({ compact = false, onNavigate }) => {
                         <span className="line-clamp-1 block text-sm font-bold text-gray-100">
                           {title}
                         </span>
-                        <span className="mt-1 block text-xs text-gray-500">
+                        <span className="mt-1 block text-xs text-gray-400">
                           {movie.media_type === "tv" ? "TV show · " : "Movie · "}{(movie.release_date || movie.first_air_date)?.slice(0, 4) || "Release TBA"}
                         </span>
                       </span>
@@ -252,7 +252,7 @@ const SearchBar = ({ compact = false, onNavigate }) => {
           {!loading &&
             query.trim().length >= 2 &&
             suggestions.length === 0 && (
-              <p className="px-3 py-4 text-sm text-gray-500" role="status">
+              <p className="px-3 py-4 text-sm text-gray-400" role="status">
                 No movie or TV show suggestions found.
               </p>
             )}
@@ -262,7 +262,7 @@ const SearchBar = ({ compact = false, onNavigate }) => {
             recentSearches.length > 0 && (
               <div>
                 <div className="flex items-center justify-between px-3 py-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                  <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
                     Recent searches
                   </span>
                   <button
@@ -271,7 +271,7 @@ const SearchBar = ({ compact = false, onNavigate }) => {
                       clearRecentSearches();
                       setRecentSearches([]);
                     }}
-                    className="text-xs font-semibold text-gray-500 hover:text-white"
+                    className="text-xs font-semibold text-gray-400 hover:text-white"
                   >
                     Clear
                   </button>

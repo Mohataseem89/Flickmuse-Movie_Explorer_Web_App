@@ -164,7 +164,7 @@ const WatchList = ({ watchlist, handleRemoveFromWatchlist }) => {
           <label className="relative block">
             <span className="sr-only">Search your watchlist</span>
             <Search
-              className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500"
+              className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400"
               aria-hidden="true"
             />
             <input
@@ -179,7 +179,7 @@ const WatchList = ({ watchlist, handleRemoveFromWatchlist }) => {
           <label className="relative block">
             <span className="sr-only">Filter by genre</span>
             <SlidersHorizontal
-              className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500"
+              className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
               aria-hidden="true"
             />
             <select
@@ -215,7 +215,7 @@ const WatchList = ({ watchlist, handleRemoveFromWatchlist }) => {
           <div className="rounded-3xl border border-dashed border-white/15 py-16 text-center">
             <Search className="mx-auto h-8 w-8 text-gray-600" aria-hidden="true" />
             <h2 className="mt-4 text-xl font-bold">No matching movies</h2>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-gray-400">
               Try another title or remove the current filters.
             </p>
             <button
@@ -273,7 +273,7 @@ const WatchList = ({ watchlist, handleRemoveFromWatchlist }) => {
                         />
                         {movie.vote_average?.toFixed(1) || "N/A"}
                       </div>
-                      <p className="mt-2 line-clamp-2 text-xs leading-5 text-gray-500">
+                      <p className="mt-2 line-clamp-2 text-xs leading-5 text-gray-400">
                         {genres.join(" • ") || "Genres unavailable"}
                       </p>
                     </div>
@@ -281,7 +281,7 @@ const WatchList = ({ watchlist, handleRemoveFromWatchlist }) => {
                     <button
                       type="button"
                       onClick={() => handleRemoveFromWatchlist(movie)}
-                      className="flex h-11 w-11 items-center justify-center rounded-xl text-gray-500 transition-colors hover:bg-red-500/10 hover:text-red-400"
+                      className="flex h-11 w-11 items-center justify-center rounded-xl text-gray-400 transition-colors hover:bg-red-500/10 hover:text-red-400"
                       aria-label={"Remove " + title + " from watchlist"}
                     >
                       <Trash2 className="h-5 w-5" aria-hidden="true" />
@@ -293,7 +293,7 @@ const WatchList = ({ watchlist, handleRemoveFromWatchlist }) => {
 
             <div className="hidden overflow-hidden rounded-3xl border border-white/10 bg-[#11151c] md:block">
               <table className="w-full text-left">
-                <thead className="border-b border-white/10 bg-white/[0.03] text-xs font-bold uppercase tracking-wider text-gray-500">
+                <thead className="border-b border-white/10 bg-white/[0.03] text-xs font-bold uppercase tracking-wider text-gray-400">
                   <tr>
                     <th className="px-5 py-4">Movie</th>
                     <th className="px-5 py-4">Rating</th>
@@ -341,7 +341,7 @@ const WatchList = ({ watchlist, handleRemoveFromWatchlist }) => {
                               >
                                 {title}
                               </Link>
-                              <p className="mt-1 text-sm text-gray-500">
+                              <p className="mt-1 text-sm text-gray-400">
                                 {movie.release_date?.slice(0, 4) || "Release TBA"}
                               </p>
                             </div>
@@ -368,7 +368,7 @@ const WatchList = ({ watchlist, handleRemoveFromWatchlist }) => {
                           <button
                             type="button"
                             onClick={() => handleRemoveFromWatchlist(movie)}
-                            className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-gray-500 transition-colors hover:bg-red-500/10 hover:text-red-400"
+                            className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-gray-400 transition-colors hover:bg-red-500/10 hover:text-red-400"
                             aria-label={"Remove " + title + " from watchlist"}
                           >
                             <Trash2 className="h-5 w-5" aria-hidden="true" />

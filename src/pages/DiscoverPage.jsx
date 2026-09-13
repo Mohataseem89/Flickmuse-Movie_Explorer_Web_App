@@ -5,6 +5,7 @@ import { discoverMovies } from "../api/tmdb";
 import MovieResultsGrid from "../components/MovieResultsGrid";
 import Pagination from "../components/Pagination";
 import FilterChipGroup from "../components/FilterChipGroup";
+import ResultsAnnouncer from "../components/ResultsAnnouncer";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { useGenres } from "../hooks/useGenres";
 
@@ -118,7 +119,7 @@ export default function DiscoverPage({
           </div>
           <div className="mt-5 grid gap-5">
             <FilterChipGroup label="Genre" value={filters.genre} options={genreOptions} onChange={(value) => updateFilter("genre", value)} />
-            <label className="block max-w-sm text-xs font-bold uppercase tracking-wider text-gray-500">
+            <label className="block max-w-sm text-xs font-bold uppercase tracking-wider text-gray-400">
               Release year
               <span className="relative mt-2 block">
                 <select
@@ -147,17 +148,24 @@ export default function DiscoverPage({
 
         <div className="mt-10 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-500">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">
               Results
             </p>
             <h2 className="mt-2 text-2xl font-black">
               {loading ? "Finding movies…" : totalResults.toLocaleString() + " matches"}
             </h2>
           </div>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-400">
             Page {filters.page} of {totalPages}
           </p>
         </div>
+
+        <ResultsAnnouncer
+          loading={loading}
+          page={filters.page}
+          count={totalResults}
+          label="movie discovery results"
+        />
 
         {error ? (
           <div role="alert" className="mt-8 rounded-2xl border border-red-500/20 bg-red-500/10 p-5 text-red-200">

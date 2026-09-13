@@ -7,6 +7,11 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react(), tailwindcss()],
+    test: {
+      environment: "jsdom",
+      setupFiles: "./tests/components/setup.js",
+      include: ["tests/components/**/*.test.{js,jsx}"],
+    },
     server: apiKey
       ? {
           proxy: {
