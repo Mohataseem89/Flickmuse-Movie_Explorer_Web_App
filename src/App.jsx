@@ -10,6 +10,7 @@ import { useWatchlist } from "./hooks/useWatchlist";
 
 const HomePage = lazy(() => import("./pages/HomePage"));
 const DiscoverPage = lazy(() => import("./pages/DiscoverPage"));
+const TVShowsPage = lazy(() => import("./pages/TVShowsPage"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
 const PersonDetails = lazy(() => import("./pages/PersonDetails"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
@@ -34,7 +35,7 @@ function App() {
   };
 
   const handleRemoveFromWatchlist = (movie) => {
-    removeFromWatchlist(movie.id);
+    removeFromWatchlist(movie);
     showToast((movie.title || movie.name) + " removed from your watchlist.", "info");
   };
 
@@ -62,6 +63,7 @@ function App() {
             <Routes>
             <Route path="/" element={<HomePage {...discoveryProps} />} />
             <Route path="/discover" element={<DiscoverPage {...discoveryProps} />} />
+            <Route path="/tv" element={<TVShowsPage {...discoveryProps} />} />
             <Route path="/search" element={<SearchPage {...discoveryProps} />} />
             <Route
               path="/watchlist"
@@ -73,6 +75,7 @@ function App() {
               }
             />
             <Route path="/movie/:id" element={<MovieDetails {...discoveryProps} />} />
+            <Route path="/tv/:id" element={<MovieDetails {...discoveryProps} mediaType="tv" />} />
             <Route path="/person/:id" element={<PersonDetails {...discoveryProps} />} />
             <Route path="*" element={<NotFoundPage />} />
             </Routes>

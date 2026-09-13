@@ -22,8 +22,8 @@ export function useWatchlist() {
   );
 
   const removeFromWatchlist = useCallback(
-    (movieId) => {
-      const updatedWatchlist = removeMovieFromWatchlist(watchlist, movieId);
+    (movie) => {
+      const updatedWatchlist = removeMovieFromWatchlist(watchlist, movie);
       saveWatchlist(updatedWatchlist);
       setWatchlist(updatedWatchlist);
     },
@@ -36,4 +36,3 @@ export function useWatchlist() {
     removeFromWatchlist,
   };
 }
-

@@ -1,11 +1,12 @@
 import { ChevronDown, RotateCcw, SlidersHorizontal } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { discoverMovies, getMovieGenres } from "../api/tmdb";
+import { discoverMovies } from "../api/tmdb";
 import MovieResultsGrid from "../components/MovieResultsGrid";
 import Pagination from "../components/Pagination";
 import FilterChipGroup from "../components/FilterChipGroup";
 import { usePageMetadata } from "../hooks/usePageMetadata";
+import { useGenres } from "../hooks/useGenres";
 
 const sortOptions = [
   { value: "popularity.desc", label: "Most popular" },
@@ -20,7 +21,7 @@ export default function DiscoverPage({
   handleRemoveFromWatchlist,
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [genres, setGenres] = useState([]);
+  const { genres } = useGenres();
   const [movies, setMovies] = useState([]);
   const [totalResults, setTotalResults] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -44,18 +45,6 @@ export default function DiscoverPage({
     }),
     [searchParams]
   );
-
-  useEffect(() => {
-    const controller = new AbortController();
-    getMovieGenres(controller.signal)
-      .then((data) => setGenres(data.genres || []))
-      .catch((requestError) => {
-        if (requestError.name !== "AbortError") {
-          console.error("Unable to load genres:", requestError);
-        }
-      });
-    return () => controller.abort();
-  }, []);
 
   useEffect(() => {
     const controller = new AbortController();

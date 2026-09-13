@@ -10,6 +10,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { getImageUrl } from "../api/tmdb";
 import { usePageMetadata } from "../hooks/usePageMetadata";
+import { useGenres } from "../hooks/useGenres";
 
 const GENRE_MAP = {
   28: "Action",
@@ -46,6 +47,7 @@ const WatchList = ({ watchlist, handleRemoveFromWatchlist }) => {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("added");
   const [selectedGenre, setSelectedGenre] = useState("All");
+  const { genreMap } = useGenres();
 
   usePageMetadata({
     title: "My Watchlist",
@@ -58,12 +60,12 @@ const WatchList = ({ watchlist, handleRemoveFromWatchlist }) => {
 
     watchlist.forEach((movie) => {
       getGenreIds(movie).forEach((genreId) => {
-        if (GENRE_MAP[genreId]) genres.add(GENRE_MAP[genreId]);
+        if (genreMap[genreId] || GENRE_MAP[genreId]) genres.add(genreMap[genreId] || GENRE_MAP[genreId]);
       });
     });
 
     return ["All", ...Array.from(genres).sort()];
-  }, [watchlist]);
+  }, [watchlist, genreMap]);
 
   const filteredMovies = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -74,7 +76,7 @@ const WatchList = ({ watchlist, handleRemoveFromWatchlist }) => {
       const matchesGenre =
         selectedGenre === "All" ||
         getGenreIds(movie).some(
-          (genreId) => GENRE_MAP[genreId] === selectedGenre
+          (genreId) => (genreMap[genreId] || GENRE_MAP[genreId]) === selectedGenre
         );
 
       return matchesSearch && matchesGenre;
@@ -97,7 +99,7 @@ const WatchList = ({ watchlist, handleRemoveFromWatchlist }) => {
       }
       return watchlist.indexOf(first) - watchlist.indexOf(second);
     });
-  }, [watchlist, search, selectedGenre, sortBy]);
+  }, [watchlist, search, selectedGenre, sortBy, genreMap]);
 
   const clearFilters = () => {
     setSearch("");

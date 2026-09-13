@@ -8,8 +8,10 @@ export function normalizeWatchlist(value) {
 
   const uniqueMovies = new Map();
   value.forEach((movie) => {
-    if (movie && Number.isFinite(movie.id) && !uniqueMovies.has(movie.id)) {
-      uniqueMovies.set(movie.id, movie);
+    const mediaKey = movie?.media_type === "tv" ? "tv" : "movie";
+    const key = movie?.id + "-" + mediaKey;
+    if (movie && Number.isFinite(movie.id) && !uniqueMovies.has(key)) {
+      uniqueMovies.set(key, movie);
     }
   });
 
@@ -46,13 +48,16 @@ export function addMovieToWatchlist(watchlist, movie) {
     return { watchlist: normalized, added: false };
   }
 
-  if (normalized.some((item) => item.id === movie.id)) {
+  const mediaType = movie.media_type === "tv" ? "tv" : "movie";
+  if (normalized.some((item) => item.id === movie.id && (item.media_type === "tv" ? "tv" : "movie") === mediaType)) {
     return { watchlist: normalized, added: false };
   }
 
   return { watchlist: [...normalized, movie], added: true };
 }
 
-export function removeMovieFromWatchlist(watchlist, movieId) {
-  return normalizeWatchlist(watchlist).filter((movie) => movie.id !== movieId);
+export function removeMovieFromWatchlist(watchlist, movieOrId) {
+  const movieId = typeof movieOrId === "object" ? movieOrId.id : movieOrId;
+  const mediaType = typeof movieOrId === "object" ? (movieOrId.media_type === "tv" ? "tv" : "movie") : null;
+  return normalizeWatchlist(watchlist).filter((movie) => movie.id !== movieId || (mediaType && (movie.media_type === "tv" ? "tv" : "movie") !== mediaType));
 }

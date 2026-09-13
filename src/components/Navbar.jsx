@@ -1,4 +1,4 @@
-import { Bookmark, Clapperboard, Compass, Home, Menu, X } from "lucide-react";
+import { Bookmark, Clapperboard, Compass, Home, Menu, Tv, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import SearchBar from "./SearchBar";
@@ -28,6 +28,7 @@ const Navbar = ({ watchlistCount }) => {
   const navLinks = [
     { name: "Home", path: "/", icon: Home },
     { name: "Discover", path: "/discover", icon: Compass },
+    { name: "TV shows", path: "/tv", icon: Tv },
     { name: "Watchlist", path: "/watchlist", icon: Bookmark },
   ];
 

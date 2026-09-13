@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { getImageUrl, getMovieBundle } from "../api/tmdb";
+import { getImageUrl, getMovieBundle, getTVBundle } from "../api/tmdb";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { absoluteUrl, textForMeta } from "../seo/site";
 import MovieCards from "./MovieCards";
@@ -36,6 +36,7 @@ function MovieRow({
   eyebrow,
   title,
   movies,
+  mediaType = "movie",
   watchlist,
   handleAddToWatchlist,
   handleRemoveFromWatchlist,
@@ -57,8 +58,8 @@ function MovieRow({
               key={item.id}
               className="w-[42vw] max-w-[190px] shrink-0 snap-start sm:w-[190px]"
             >
-              <MovieCards
-                movie={item}
+            <MovieCards
+                movie={{ ...item, media_type: mediaType }}
                 watchlist={watchlist}
                 handleAddToWatchlist={handleAddToWatchlist}
                 handleRemoveFromWatchlist={handleRemoveFromWatchlist}
@@ -75,6 +76,7 @@ export default function MovieDetails({
   watchlist,
   handleAddToWatchlist,
   handleRemoveFromWatchlist,
+  mediaType = "movie",
 }) {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -86,8 +88,8 @@ export default function MovieDetails({
   usePageMetadata({
     title: movie
       ? [
-          movie.title,
-          movie.release_date?.slice(0, 4),
+          movie.title || movie.name,
+          (movie.release_date || movie.first_air_date)?.slice(0, 4),
           movie.genres?.slice(0, 2).map((genre) => genre.name).join(", "),
         ]
           .filter(Boolean)
@@ -104,12 +106,12 @@ export default function MovieDetails({
           "@context": "https://schema.org",
           "@graph": [
             {
-              "@type": "Movie",
-              "@id": absoluteUrl("/movie/" + movie.id),
-              name: movie.title,
+              "@type": mediaType === "tv" ? "TVSeries" : "Movie",
+              "@id": absoluteUrl("/" + mediaType + "/" + movie.id),
+              name: movie.title || movie.name,
               description: movie.overview || undefined,
               image: getImageUrl(movie.poster_path, "w500") || undefined,
-              dateCreated: movie.release_date || undefined,
+              dateCreated: movie.release_date || movie.first_air_date || undefined,
               duration: movie.runtime ? "PT" + movie.runtime + "M" : undefined,
               genre: movie.genres?.map((genre) => genre.name),
               aggregateRating:
@@ -127,8 +129,8 @@ export default function MovieDetails({
               "@type": "BreadcrumbList",
               itemListElement: [
                 { "@type": "ListItem", position: 1, name: "Home", item: absoluteUrl("/") },
-                { "@type": "ListItem", position: 2, name: "Movie", item: absoluteUrl("/movie/" + movie.id) },
-                { "@type": "ListItem", position: 3, name: movie.title },
+                { "@type": "ListItem", position: 2, name: mediaType === "tv" ? "TV show" : "Movie", item: absoluteUrl("/" + mediaType + "/" + movie.id) },
+                { "@type": "ListItem", position: 3, name: movie.title || movie.name },
               ],
             },
           ],
@@ -141,7 +143,7 @@ export default function MovieDetails({
     setLoading(true);
     setError("");
 
-    getMovieBundle(id, controller.signal)
+    (mediaType === "tv" ? getTVBundle(id, controller.signal) : getMovieBundle(id, controller.signal))
       .then(setMovie)
       .catch((requestError) => {
         if (requestError.name !== "AbortError") setError(requestError.message);
@@ -151,7 +153,7 @@ export default function MovieDetails({
       });
 
     return () => controller.abort();
-  }, [id]);
+  }, [id, mediaType]);
 
   const trailer = useMemo(() => {
     const videos = movie?.videos?.results || [];
@@ -210,7 +212,10 @@ export default function MovieDetails({
   const smallBackdropUrl = getImageUrl(movie.backdrop_path, "w780");
   const backdropUrl = getImageUrl(movie.backdrop_path, "w1280");
   const posterUrl = getImageUrl(movie.poster_path, "w500");
-  const releaseYear = movie.release_date?.slice(0, 4) || "TBA";
+  const releaseYear = (movie.release_date || movie.first_air_date)?.slice(0, 4) || "TBA";
+  const title = movie.title || movie.name || "Untitled title";
+  const providerData = movie["watch/providers"]?.results?.IN;
+  const providers = providerData ? [...(providerData.flatrate || []), ...(providerData.rent || []), ...(providerData.buy || [])].filter((provider, index, list) => list.findIndex((item) => item.provider_id === provider.provider_id) === index).slice(0, 8) : [];
   const cast = (movie.credits?.cast || []).slice(0, 12);
   const recommendations = movie.recommendations?.results || [];
   const similar = movie.similar?.results || [];
@@ -248,7 +253,7 @@ export default function MovieDetails({
               Movie details
             </p>
             <h1 className="mt-4 text-[clamp(2.5rem,7vw,5.5rem)] font-black leading-[0.98] tracking-[-0.055em] [text-shadow:0_3px_22px_rgba(0,0,0,0.8)]">
-              {movie.title}
+              {title}
             </h1>
             {movie.tagline && (
               <p className="mt-4 max-w-2xl text-lg italic text-gray-300 sm:text-xl">
@@ -309,7 +314,7 @@ export default function MovieDetails({
             {posterUrl ? (
               <img
                 src={posterUrl}
-                alt={movie.title + " poster"}
+                alt={title + " poster"}
                 width="500"
                 height="750"
                 className="h-full w-full object-cover"
@@ -347,6 +352,11 @@ export default function MovieDetails({
                 </Link>
               ))}
             </div>
+          </section>
+
+          <section className="mt-9" aria-labelledby="where-to-watch-title">
+            <h2 id="where-to-watch-title" className="text-sm font-bold uppercase tracking-[0.18em] text-gray-500">Where to watch in India</h2>
+            {providers.length ? <div className="mt-3 flex flex-wrap gap-3">{providers.map((provider) => <a key={provider.provider_id} href={providerData.link} target="_blank" rel="noreferrer" className="group flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] p-2 pr-3 text-sm font-bold text-gray-200 transition hover:border-white/25 hover:bg-white/[0.08]"><img src={getImageUrl(provider.logo_path, "w92")} alt="" width="36" height="36" className="h-9 w-9 rounded-lg object-cover" />{provider.provider_name}</a>)}</div> : <p className="mt-3 text-sm leading-6 text-gray-400">Streaming availability is not currently listed for India.</p>}
           </section>
 
           <dl className="mt-9 grid gap-3 sm:grid-cols-3">
@@ -432,6 +442,7 @@ export default function MovieDetails({
         eyebrow="Picked from this title"
         title="You may also like"
         movies={recommendations}
+        mediaType={mediaType}
         watchlist={watchlist}
         handleAddToWatchlist={handleAddToWatchlist}
         handleRemoveFromWatchlist={handleRemoveFromWatchlist}
@@ -441,6 +452,7 @@ export default function MovieDetails({
         eyebrow="Keep exploring"
         title="Similar movies"
         movies={similar}
+        mediaType={mediaType}
         watchlist={watchlist}
         handleAddToWatchlist={handleAddToWatchlist}
         handleRemoveFromWatchlist={handleRemoveFromWatchlist}

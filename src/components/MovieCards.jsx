@@ -9,16 +9,17 @@ const MovieCards = ({
   watchlist,
 }) => {
   const title = movie.title || movie.name || "Untitled movie";
-  const isInWatchlist = watchlist.some((item) => item.id === movie.id);
+  const mediaType = movie.media_type === "tv" ? "tv" : "movie";
+  const isInWatchlist = watchlist.some((item) => item.id === movie.id && (item.media_type || "movie") === mediaType);
   const smallPosterUrl = getImageUrl(movie.poster_path, "w185");
   const posterUrl = getImageUrl(movie.poster_path, "w342");
-  const releaseYear = movie.release_date?.slice(0, 4) || "TBA";
+  const releaseYear = (movie.release_date || movie.first_air_date)?.slice(0, 4) || "TBA";
 
   return (
     <article className="group min-w-0">
       <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#11151c] shadow-lg shadow-black/20 transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-1 hover:border-white/20 hover:shadow-2xl hover:shadow-black/35">
         <Link
-          to={"/movie/" + movie.id}
+          to={"/" + mediaType + "/" + movie.id}
           className="block aspect-[2/3] overflow-hidden"
           aria-label={"View details for " + title}
         >
@@ -72,7 +73,7 @@ const MovieCards = ({
 
       <div className="px-1 pt-3">
         <Link
-          to={"/movie/" + movie.id}
+          to={"/" + mediaType + "/" + movie.id}
           className="block rounded-md text-[15px] font-bold leading-5 text-gray-100 transition-colors hover:text-red-400 sm:text-base"
         >
           <span className="line-clamp-2 min-h-10">{title}</span>

@@ -209,10 +209,41 @@ export function getSimilarMovies(id, signal) {
 export function getMovieBundle(id, signal) {
   return tmdbRequest("/movie/" + id, {
     params: {
-      append_to_response: "videos,credits,recommendations,similar",
+      append_to_response: "videos,credits,recommendations,similar,watch/providers",
     },
     signal,
     cacheTime: 10 * 60 * 1000,
+  });
+}
+
+export function getTVGenres(signal) {
+  return tmdbRequest("/genre/tv/list", { signal, cacheTime: 24 * 60 * 60 * 1000 });
+}
+
+export function getPopularTV(page = 1, signal) {
+  return tmdbRequest("/tv/popular", { params: { page: String(page) }, signal });
+}
+
+export function getTrendingTV(signal) {
+  return tmdbRequest("/trending/tv/week", { signal });
+}
+
+export function getTVBundle(id, signal) {
+  return tmdbRequest("/tv/" + id, {
+    params: { append_to_response: "videos,credits,recommendations,similar,watch/providers" },
+    signal,
+    cacheTime: 10 * 60 * 1000,
+  });
+}
+
+export function discoverTV(filters = {}, signal) {
+  const { page = 1, genre, year, sortBy = "popularity.desc", minimumRating } = filters;
+  return tmdbRequest("/discover/tv", {
+    params: {
+      page: String(page), with_genres: genre, first_air_date_year: year,
+      sort_by: sortBy, "vote_average.gte": minimumRating,
+      "vote_count.gte": minimumRating ? "100" : undefined,
+    }, signal,
   });
 }
 

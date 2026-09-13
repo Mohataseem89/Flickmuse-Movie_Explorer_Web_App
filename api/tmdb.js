@@ -2,11 +2,17 @@ const API_BASE_URL = "https://api.themoviedb.org/3";
 
 const ALLOWED_PATHS = [
   /^\/trending\/movie\/week$/,
+  /^\/trending\/tv\/week$/,
   /^\/movie\/(popular|now_playing|top_rated)$/,
   /^\/discover\/movie$/,
+  /^\/discover\/tv$/,
   /^\/search\/movie$/,
+  /^\/search\/tv$/,
   /^\/genre\/movie\/list$/,
+  /^\/genre\/tv\/list$/,
   /^\/movie\/\d+(?:\/similar)?$/,
+  /^\/tv\/(popular|on_the_air|top_rated)$/, 
+  /^\/tv\/\d+(?:\/similar)?$/,
   /^\/person\/\d+(?:\/movie_credits)?$/,
 ];
 
