@@ -14,6 +14,9 @@ const MovieCards = ({
   const smallPosterUrl = getImageUrl(movie.poster_path, "w185");
   const posterUrl = getImageUrl(movie.poster_path, "w342");
   const releaseYear = (movie.release_date || movie.first_air_date)?.slice(0, 4) || "TBA";
+  const prefetchDetails = () => {
+    import("./MovieDetails");
+  };
 
   return (
     <article className="group min-w-0">
@@ -21,6 +24,8 @@ const MovieCards = ({
         <Link
           to={"/" + mediaType + "/" + movie.id}
           className="block aspect-[2/3] overflow-hidden"
+          onMouseEnter={prefetchDetails}
+          onFocus={prefetchDetails}
           aria-label={"View details for " + title}
         >
           {posterUrl ? (
@@ -75,6 +80,8 @@ const MovieCards = ({
         <Link
           to={"/" + mediaType + "/" + movie.id}
           className="block rounded-md text-[15px] font-bold leading-5 text-gray-100 transition-colors hover:text-red-400 sm:text-base"
+          onMouseEnter={prefetchDetails}
+          onFocus={prefetchDetails}
         >
           <span className="line-clamp-2 min-h-10">{title}</span>
         </Link>

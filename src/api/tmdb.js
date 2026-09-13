@@ -2,6 +2,32 @@ const IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
 const DEFAULT_CACHE_TIME = 5 * 60 * 1000;
 const responseCache = new Map();
 const inFlightRequests = new Map();
+const SESSION_CACHE_PREFIX = "flickmuse:tmdb-cache:v1:";
+const SESSION_CACHE_LIMIT = 30;
+
+function readSessionCache(requestKey) {
+  try {
+    const cached = window.sessionStorage.getItem(SESSION_CACHE_PREFIX + requestKey);
+    if (!cached) return null;
+    const value = JSON.parse(cached);
+    if (!value?.expiresAt || value.expiresAt <= Date.now()) {
+      window.sessionStorage.removeItem(SESSION_CACHE_PREFIX + requestKey);
+      return null;
+    }
+    return value;
+  } catch { return null; }
+}
+
+function writeSessionCache(requestKey, value) {
+  try {
+    const storage = window.sessionStorage;
+    storage.setItem(SESSION_CACHE_PREFIX + requestKey, JSON.stringify(value));
+    const keys = Object.keys(storage).filter((key) => key.startsWith(SESSION_CACHE_PREFIX));
+    if (keys.length > SESSION_CACHE_LIMIT) {
+      keys.slice(0, keys.length - SESSION_CACHE_LIMIT).forEach((key) => storage.removeItem(key));
+    }
+  } catch { /* Storage is an optional performance enhancement. */ }
+}
 
 function waitForRequest(request, signal) {
   if (!signal) return request;
@@ -44,7 +70,7 @@ async function tmdbRequest(
     ...normalizedParams,
   });
   const requestKey = path + "?" + publicParams.toString();
-  const cached = responseCache.get(requestKey);
+  const cached = responseCache.get(requestKey) || readSessionCache(requestKey);
 
   if (cached && cached.expiresAt > Date.now()) {
     return waitForRequest(Promise.resolve(cached.data), signal);
@@ -77,6 +103,7 @@ async function tmdbRequest(
           data,
           expiresAt: Date.now() + cacheTime,
         });
+        writeSessionCache(requestKey, { data, expiresAt: Date.now() + cacheTime });
 
         if (responseCache.size > 100) {
           responseCache.delete(responseCache.keys().next().value);
