@@ -1,7 +1,7 @@
 import { ChevronDown, RotateCcw, SlidersHorizontal } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { discoverMovies } from "../api/tmdb";
+import { discoverTitles } from "../api/tmdb";
 import MovieResultsGrid from "../components/MovieResultsGrid";
 import Pagination from "../components/Pagination";
 import FilterChipGroup from "../components/FilterChipGroup";
@@ -16,28 +16,28 @@ const sortOptions = [
   { value: "revenue.desc", label: "Highest grossing" },
 ];
 
+const sharedSortOptions = sortOptions.filter((option) => option.value !== "revenue.desc");
+const contentTypeOptions = [
+  { value: "movie", label: "Movies" },
+  { value: "tv", label: "TV shows" },
+  { value: "both", label: "Both" },
+];
+
 export default function DiscoverPage({
   watchlist,
   handleAddToWatchlist,
   handleRemoveFromWatchlist,
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { genres } = useGenres();
   const [movies, setMovies] = useState([]);
   const [totalResults, setTotalResults] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  usePageMetadata({
-    title: "Discover Movies by Genre, Year and Rating",
-    description:
-      "Find movies by genre, release year, rating, and popularity with FlickMuse filters for your next watch.",
-    canonicalPath: "/discover",
-  });
-
   const filters = useMemo(
     () => ({
+      mediaType: searchParams.get("type") || "movie",
       genre: searchParams.get("genre") || "",
       year: searchParams.get("year") || "",
       sortBy: searchParams.get("sort") || "popularity.desc",
@@ -46,13 +46,23 @@ export default function DiscoverPage({
     }),
     [searchParams]
   );
+  const contentLabel = filters.mediaType === "tv" ? "TV shows" : filters.mediaType === "both" ? "movies and TV shows" : "movies";
+
+  usePageMetadata({
+    title: "Discover " + contentLabel + " by Genre, Year and Rating",
+    description:
+      "Find " + contentLabel + " by genre, release year, rating, and popularity with FlickMuse filters for your next watch.",
+    canonicalPath: "/discover",
+  });
+
+  const { genres } = useGenres(filters.mediaType);
 
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
     setError("");
 
-    discoverMovies(filters, controller.signal)
+    discoverTitles(filters, controller.signal)
       .then((data) => {
         setMovies(data.results || []);
         setTotalResults(data.total_results || 0);
@@ -72,6 +82,9 @@ export default function DiscoverPage({
     const next = new URLSearchParams(searchParams);
     if (value) next.set(key, value);
     else next.delete(key);
+    if (key === "type" && value !== "movie" && filters.sortBy === "revenue.desc") {
+      next.set("sort", "popularity.desc");
+    }
     next.delete("page");
     setSearchParams(next);
   };
@@ -91,6 +104,7 @@ export default function DiscoverPage({
     (_, index) => new Date().getFullYear() + 1 - index
   );
   const genreOptions = [{ value: "", label: "All genres" }, ...genres.map((genre) => ({ value: genre.id, label: genre.name }))];
+  const availableSortOptions = filters.mediaType === "movie" ? sortOptions : sharedSortOptions;
   const ratingOptions = [
     { value: "", label: "Any rating" },
     { value: "6", label: "6+ / 10" },
@@ -102,13 +116,13 @@ export default function DiscoverPage({
     <section className="min-h-[75vh] bg-[#080a0f] py-12 text-white sm:py-16">
       <div className="mx-auto max-w-[1600px] px-5 sm:px-8">
         <p className="text-xs font-bold uppercase tracking-[0.22em] text-red-400 sm:text-sm">
-          Find your next movie
+          Find your next title
         </p>
         <h1 className="mt-3 text-4xl font-black tracking-[-0.05em] sm:text-5xl">
-          Discover movies
+          Discover {contentLabel}
         </h1>
         <p className="mt-4 max-w-2xl leading-7 text-gray-400">
-          Combine genre, year, rating, and sorting filters. Your selection stays
+          Choose movies, TV shows, or both, then combine genre, year, rating, and sorting filters. Your selection stays
           in the URL, so the result is easy to bookmark or share.
         </p>
 
@@ -118,6 +132,7 @@ export default function DiscoverPage({
             Refine results
           </div>
           <div className="mt-5 grid gap-5">
+            <FilterChipGroup label="Content type" value={filters.mediaType} options={contentTypeOptions} onChange={(value) => updateFilter("type", value)} />
             <FilterChipGroup label="Genre" value={filters.genre} options={genreOptions} onChange={(value) => updateFilter("genre", value)} />
             <label className="block max-w-sm text-xs font-bold uppercase tracking-wider text-gray-400">
               Release year
@@ -134,7 +149,7 @@ export default function DiscoverPage({
               </span>
             </label>
             <FilterChipGroup label="Minimum rating" value={filters.minimumRating} options={ratingOptions} onChange={(value) => updateFilter("rating", value)} />
-            <FilterChipGroup label="Sort by" value={filters.sortBy} options={sortOptions} onChange={(value) => updateFilter("sort", value)} />
+            <FilterChipGroup label="Sort by" value={filters.sortBy} options={availableSortOptions} onChange={(value) => updateFilter("sort", value)} />
             <button
               type="button"
               onClick={clearFilters}
@@ -152,7 +167,7 @@ export default function DiscoverPage({
               Results
             </p>
             <h2 className="mt-2 text-2xl font-black">
-              {loading ? "Finding movies…" : totalResults.toLocaleString() + " matches"}
+              {loading ? "Finding titles…" : totalResults.toLocaleString() + " matches"}
             </h2>
           </div>
           <p className="text-sm text-gray-400">
@@ -164,7 +179,7 @@ export default function DiscoverPage({
           loading={loading}
           page={filters.page}
           count={totalResults}
-          label="movie discovery results"
+          label={contentLabel + " discovery results"}
         />
 
         {error ? (
@@ -175,7 +190,7 @@ export default function DiscoverPage({
           <MovieResultsGrid
             movies={movies}
             loading={loading}
-            emptyMessage="No movies match this filter combination. Try widening your choices."
+            emptyMessage={"No " + contentLabel + " match this filter combination. Try widening your choices."}
             watchlist={watchlist}
             handleAddToWatchlist={handleAddToWatchlist}
             handleRemoveFromWatchlist={handleRemoveFromWatchlist}

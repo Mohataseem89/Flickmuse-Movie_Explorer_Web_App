@@ -5,8 +5,19 @@ export function useGenres(mediaType = "movie") {
   const [genres, setGenres] = useState([]);
   useEffect(() => {
     const controller = new AbortController();
-    const loadGenres = mediaType === "tv" ? getTVGenres : getMovieGenres;
-    loadGenres(controller.signal).then((data) => setGenres(data.genres || [])).catch(() => {});
+    const loadGenres = mediaType === "both"
+      ? Promise.all([getMovieGenres(controller.signal), getTVGenres(controller.signal)])
+        .then(([movies, television]) => {
+          const uniqueGenres = new Map();
+          [...(movies.genres || []), ...(television.genres || [])].forEach((genre) => {
+            if (!uniqueGenres.has(genre.id)) uniqueGenres.set(genre.id, genre);
+          });
+          return [...uniqueGenres.values()];
+        })
+      : (mediaType === "tv" ? getTVGenres : getMovieGenres)(controller.signal)
+        .then((data) => data.genres || []);
+
+    loadGenres.then(setGenres).catch(() => {});
     return () => controller.abort();
   }, [mediaType]);
   const genreMap = useMemo(() => Object.fromEntries(genres.map((genre) => [genre.id, genre.name])), [genres]);

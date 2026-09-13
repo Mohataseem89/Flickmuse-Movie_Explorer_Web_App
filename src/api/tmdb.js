@@ -226,6 +226,54 @@ export function discoverMovies(filters = {}, signal) {
   });
 }
 
+function addMediaType(results, mediaType) {
+  return (results || []).map((result) => ({ ...result, media_type: mediaType }));
+}
+
+function getTVSortBy(sortBy) {
+  if (sortBy === "primary_release_date.desc") return "first_air_date.desc";
+  if (sortBy === "revenue.desc") return "popularity.desc";
+  return sortBy;
+}
+
+export async function discoverTitles(filters = {}, signal) {
+  const mediaType = filters.mediaType || "movie";
+
+  if (mediaType === "movie") {
+    const data = await discoverMovies(filters, signal);
+    return { ...data, results: addMediaType(data.results, "movie") };
+  }
+
+  const tvFilters = { ...filters, sortBy: getTVSortBy(filters.sortBy) };
+  if (mediaType === "tv") {
+    const data = await discoverTV(tvFilters, signal);
+    return { ...data, results: addMediaType(data.results, "tv") };
+  }
+
+  const [movieData, tvData] = await Promise.all([
+    discoverMovies(filters, signal),
+    discoverTV(tvFilters, signal),
+  ]);
+  const results = [...addMediaType(movieData.results, "movie"), ...addMediaType(tvData.results, "tv")];
+
+  const sortBy = filters.sortBy || "popularity.desc";
+  const sortedResults = results.sort((first, second) => {
+    if (sortBy === "vote_average.desc") return (second.vote_average || 0) - (first.vote_average || 0);
+    if (sortBy === "primary_release_date.desc") {
+      const firstDate = first.release_date || first.first_air_date || "";
+      const secondDate = second.release_date || second.first_air_date || "";
+      return secondDate.localeCompare(firstDate);
+    }
+    return (second.popularity || 0) - (first.popularity || 0);
+  });
+
+  return {
+    results: sortedResults,
+    total_results: (movieData.total_results || 0) + (tvData.total_results || 0),
+    total_pages: Math.max(movieData.total_pages || 1, tvData.total_pages || 1),
+  };
+}
+
 export function getMovieGenres(signal) {
   return tmdbRequest("/genre/movie/list", {
     signal,
