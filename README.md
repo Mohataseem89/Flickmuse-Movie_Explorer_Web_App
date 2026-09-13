@@ -2,19 +2,21 @@
 
 [![CI](https://github.com/Mohataseem89/FilmWick-Movie_Explorer_Web_App/actions/workflows/ci.yml/badge.svg)](https://github.com/Mohataseem89/FilmWick-Movie_Explorer_Web_App/actions/workflows/ci.yml)
 
-FlickMuse is a movie discovery application built with React and TMDb. Explore popular, trending, upcoming, and top-rated movies; use shareable filters; watch trailers; browse cast and crew; and save a personal watchlist.
+FlickMuse is a movie and TV discovery application built with React and TMDb. Explore popular, trending, upcoming, and top-rated titles; use shareable filters; watch trailers; browse cast and crew; check India streaming availability when TMDb provides it; and save a personal watchlist.
 
 [Live demo](https://flickmuse.mohataseem.com/) · [Source code](https://github.com/Mohataseem89/FilmWick-Movie_Explorer_Web_App)
 
-![FlickMuse social preview](public/og-flickmuse.png)
+## Product preview
+
+The live product is the source of truth because TMDb content changes over time. The repository includes a [screenshot capture guide](docs/SCREENSHOTS.md) for maintaining three realistic portfolio screenshots—home, movie detail, and discovery filters—without committing mocked artwork or stale browser chrome.
 
 ## Highlights
 
-- Discover trending, now-playing, upcoming, popular, and top-rated movies.
-- Search by title, explore cast and crew, watch trailers, and browse related movies.
+- Discover trending, now-playing, upcoming, popular, and top-rated movies, plus popular TV shows.
+- Search movies and TV shows by title, explore cast and crew, watch trailers, and browse related titles.
 - Filter by genre, year, rating, and sort order with shareable URLs.
-- Maintain a local, persistent watchlist with defensive browser-storage handling.
-- Use responsive images, route-level code splitting, loading/error states, keyboard navigation, and reduced-motion support.
+- Maintain a local, persistent watchlist with defensive browser-storage handling and a one-time legacy key migration.
+- Use responsive images, route-level code splitting, session response caching, loading/error states, keyboard navigation, live result announcements, and reduced-motion support.
 
 ## Architecture
 
@@ -38,7 +40,8 @@ Movie data is requested through `api/tmdb.js`, a Vercel serverless proxy. The TM
 | Tailwind CSS 4 | Responsive UI styling |
 | Vercel Functions | Protected TMDb API proxy |
 | TMDb API | Movie, person, image, and video data |
-| Node test runner + ESLint | Regression checks and code quality |
+| Vitest + React Testing Library + Node test runner | Component, interaction, accessibility, and utility checks |
+| ESLint | Code-quality checks |
 
 ## Run locally
 
@@ -66,7 +69,9 @@ Never commit `.env`. In Vercel, add the same `API_KEY` environment variable for 
 | --- | --- |
 | `npm run dev` | Start local development |
 | `npm run lint` | Run ESLint |
-| `npm run test` | Run regression tests |
+| `npm run test` | Run utility, contrast, and component tests |
+| `npm run test:utils` | Run storage and contrast tests |
+| `npm run test:components` | Run React component tests in JSDOM |
 | `npm run build` | Create a production build |
 | `npm run check` | Run lint, tests, and build |
 
@@ -81,7 +86,16 @@ src/hooks/        # Metadata and watchlist hooks
 src/utils/        # Browser-storage and domain helpers
 public/           # Favicons, social image, manifest, robots, sitemap
 tests/            # Regression tests
+docs/             # Architecture, testing, performance, and screenshot notes
 ```
+
+## Engineering notes
+
+- [Architecture](docs/ARCHITECTURE.md)
+- [Testing](docs/TESTING.md)
+- [Performance audit](docs/PERFORMANCE.md)
+- [Screenshot capture](docs/SCREENSHOTS.md)
+- [Resume-ready project bullets](docs/RESUME.md)
 
 ## Deployment
 
