@@ -7,6 +7,7 @@ const ALLOWED_PATHS = [
   /^\/discover\/movie$/,
   /^\/discover\/tv$/,
   /^\/search\/movie$/,
+  /^\/search\/multi$/,
   /^\/search\/tv$/,
   /^\/genre\/movie\/list$/,
   /^\/genre\/tv\/list$/,

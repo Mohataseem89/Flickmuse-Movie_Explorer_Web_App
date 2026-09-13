@@ -1,7 +1,7 @@
 import { Clock3, Film, Search, X } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getImageUrl, searchMovies } from "../api/tmdb";
+import { getImageUrl, searchTitles } from "../api/tmdb";
 import {
   clearRecentSearches,
   getRecentSearches,
@@ -39,8 +39,8 @@ const SearchBar = ({ compact = false, onNavigate }) => {
     const timeout = window.setTimeout(async () => {
       try {
         setLoading(true);
-        const data = await searchMovies(normalizedQuery, 1, controller.signal);
-        setSuggestions((data.results || []).slice(0, 6));
+        const data = await searchTitles(normalizedQuery, 1, controller.signal);
+        setSuggestions((data.results || []).filter((result) => result.media_type === "movie" || result.media_type === "tv").slice(0, 6));
       } catch (error) {
         if (error.name !== "AbortError") setSuggestions([]);
       } finally {
@@ -77,7 +77,7 @@ const SearchBar = ({ compact = false, onNavigate }) => {
     setSuggestions([]);
     setActiveIndex(-1);
     setFocused(false);
-    navigate("/movie/" + movie.id);
+    navigate("/" + (movie.media_type === "tv" ? "tv" : "movie") + "/" + movie.id);
     onNavigate?.();
   };
 
@@ -125,7 +125,7 @@ const SearchBar = ({ compact = false, onNavigate }) => {
     >
       <form onSubmit={handleSubmit} role="search">
         <label className="relative block">
-          <span className="sr-only">Search movies</span>
+          <span className="sr-only">Search movies and TV shows</span>
           <Search
             className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500"
             aria-hidden="true"
@@ -138,7 +138,7 @@ const SearchBar = ({ compact = false, onNavigate }) => {
             }}
             onKeyDown={handleInputKeyDown}
             type="search"
-            placeholder={compact ? "Search movies" : "Search titles, genres and more"}
+            placeholder={compact ? "Search movies and TV" : "Search movies, TV shows and more"}
             autoComplete="off"
             className={
               "w-full rounded-xl border border-white/10 bg-white/[0.055] py-2.5 pl-11 text-sm text-white outline-none transition-colors placeholder:text-gray-600 focus:border-red-500/70 focus:bg-[#11151c] " +
@@ -183,12 +183,12 @@ const SearchBar = ({ compact = false, onNavigate }) => {
               aria-live="polite"
             >
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/15 border-t-red-500" />
-              Searching movies…
+              Searching titles…
             </div>
           )}
 
           {!loading && suggestions.length > 0 && (
-            <ul aria-label="Movie suggestions" role="listbox">
+            <ul aria-label="Movie and TV show suggestions" role="listbox">
               {suggestions.map((movie, index) => {
                 const title = movie.title || movie.name || "Untitled movie";
                 const poster = getImageUrl(movie.poster_path, "w92");
@@ -230,7 +230,7 @@ const SearchBar = ({ compact = false, onNavigate }) => {
                           {title}
                         </span>
                         <span className="mt-1 block text-xs text-gray-500">
-                          {movie.release_date?.slice(0, 4) || "Release TBA"}
+                          {movie.media_type === "tv" ? "TV show · " : "Movie · "}{(movie.release_date || movie.first_air_date)?.slice(0, 4) || "Release TBA"}
                         </span>
                       </span>
                     </button>
@@ -253,7 +253,7 @@ const SearchBar = ({ compact = false, onNavigate }) => {
             query.trim().length >= 2 &&
             suggestions.length === 0 && (
               <p className="px-3 py-4 text-sm text-gray-500" role="status">
-                No movie suggestions found.
+                No movie or TV show suggestions found.
               </p>
             )}
 

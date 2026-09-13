@@ -1,7 +1,7 @@
 import { Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { searchMovies } from "../api/tmdb";
+import { searchTitles } from "../api/tmdb";
 import MovieResultsGrid from "../components/MovieResultsGrid";
 import Pagination from "../components/Pagination";
 import { usePageMetadata } from "../hooks/usePageMetadata";
@@ -15,23 +15,23 @@ const SearchPage = ({
   const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get("q")?.trim() || "";
   const page = Math.max(Number.parseInt(searchParams.get("page") || "1", 10), 1);
-  const [movies, setMovies] = useState([]);
+  const [results, setResults] = useState([]);
   const [totalResults, setTotalResults] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(Boolean(query));
   const [error, setError] = useState("");
 
   usePageMetadata({
-    title: query ? "Search results for " + query : "Search Movies",
+    title: query ? "Search results for " + query : "Search Movies and TV Shows",
     description: query
-      ? "Browse FlickMuse movie results for " + query + "."
-      : "Search FlickMuse for movies, cast information, trailers, and recommendations.",
+      ? "Browse FlickMuse movie and TV show results for " + query + "."
+      : "Search FlickMuse for movies, TV shows, cast information, trailers, and recommendations.",
     robots: "noindex,follow",
   });
 
   useEffect(() => {
     if (!query) {
-      setMovies([]);
+      setResults([]);
       setTotalResults(0);
       setTotalPages(1);
       setLoading(false);
@@ -45,9 +45,10 @@ const SearchPage = ({
       try {
         setLoading(true);
         setError("");
-        const data = await searchMovies(query, page, controller.signal);
-        setMovies(data.results || []);
-        setTotalResults(data.total_results || 0);
+        const data = await searchTitles(query, page, controller.signal);
+        const titleResults = (data.results || []).filter((result) => result.media_type === "movie" || result.media_type === "tv");
+        setResults(titleResults);
+        setTotalResults(data.total_results || titleResults.length);
         setTotalPages(Math.min(data.total_pages || 1, 500));
       } catch (requestError) {
         if (requestError.name === "AbortError") return;
@@ -78,7 +79,7 @@ const SearchPage = ({
 
           </h1>
           <p className="mt-4 leading-7 text-gray-400">
-            Use the search field in the navigation to find movies by title.
+            Use the search field in the navigation to find movies and TV shows by title.
           </p>
         </div>
       </section>
@@ -108,23 +109,23 @@ const SearchPage = ({
           </div>
         ) : (
           <MovieResultsGrid
-            movies={movies}
+            movies={results}
             loading={loading}
             hasNextPage={page < totalPages}
             watchlist={watchlist}
             handleAddToWatchlist={handleAddToWatchlist}
             handleRemoveFromWatchlist={handleRemoveFromWatchlist}
-            emptyMessage={"No movies matched “" + query + "”."}
+            emptyMessage={"No movies or TV shows matched “" + query + "”."}
           />
         )}
 
-        {!error && !loading && movies.length > 0 && (
+        {!error && !loading && results.length > 0 && (
           <Pagination
             pageNo={page}
             currentPage={page}
             loading={loading}
-            handleprevpage={() => changePage(Math.max(page - 1, 1))}
-            handlenextpage={() => changePage(page + 1)}
+            handlePreviousPage={() => changePage(Math.max(page - 1, 1))}
+            handleNextPage={() => changePage(page + 1)}
           />
         )}
       </div>

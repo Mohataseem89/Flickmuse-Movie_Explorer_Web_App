@@ -194,6 +194,14 @@ export function searchMovies(query, page = 1, signal) {
   });
 }
 
+export function searchTitles(query, page = 1, signal) {
+  return tmdbRequest("/search/multi", {
+    params: { query, page: String(page), include_adult: "false" },
+    signal,
+    cacheTime: 60 * 1000,
+  });
+}
+
 export function discoverMovies(filters = {}, signal) {
   const {
     page = 1,
