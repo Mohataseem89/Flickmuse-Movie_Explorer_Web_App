@@ -57,7 +57,7 @@ function App() {
 
       <Navbar watchlistCount={watchlist.length} />
 
-      <main id="main-content" tabIndex="-1" className="outline-none">
+      <main id="main-content" tabIndex="-1" className="min-h-[100svh] outline-none">
         <Suspense fallback={<PageLoader />}>
           <RouteTransition>
             <Routes>

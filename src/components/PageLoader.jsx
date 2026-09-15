@@ -1,7 +1,7 @@
 export default function PageLoader() {
   return (
     <div
-      className="flex min-h-[65vh] items-center justify-center bg-[#080a0f]"
+      className="flex min-h-[100svh] items-center justify-center bg-[#080a0f]"
       role="status"
       aria-live="polite"
     >
@@ -12,4 +12,3 @@ export default function PageLoader() {
     </div>
   );
 }
-

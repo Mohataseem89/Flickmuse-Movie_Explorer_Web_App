@@ -1,4 +1,4 @@
-import { ChevronDown, RotateCcw, SlidersHorizontal } from "lucide-react";
+import { RotateCcw, SlidersHorizontal } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { discoverTitles } from "../api/tmdb";
@@ -99,10 +99,7 @@ export default function DiscoverPage({
 
   const clearFilters = () => setSearchParams({});
 
-  const years = Array.from(
-    { length: 60 },
-    (_, index) => new Date().getFullYear() + 1 - index
-  );
+  const newestYear = new Date().getFullYear() + 1;
   const genreOptions = [{ value: "", label: "All genres" }, ...genres.map((genre) => ({ value: genre.id, label: genre.name }))];
   const availableSortOptions = filters.mediaType === "movie" ? sortOptions : sharedSortOptions;
   const ratingOptions = [
@@ -136,17 +133,17 @@ export default function DiscoverPage({
             <FilterChipGroup label="Genre" value={filters.genre} options={genreOptions} onChange={(value) => updateFilter("genre", value)} />
             <label className="block max-w-sm text-xs font-bold uppercase tracking-wider text-gray-400">
               Release year
-              <span className="relative mt-2 block">
-                <select
-                  value={filters.year}
-                  onChange={(event) => updateFilter("year", event.target.value)}
-                  className="min-h-11 w-full appearance-none rounded-xl border border-white/10 bg-white/[0.04] px-4 pr-11 text-sm font-bold normal-case tracking-normal text-gray-100 outline-none transition-colors hover:border-white/20 focus:border-red-500 focus:ring-2 focus:ring-red-500/30"
-                >
-                  <option value="">Any year</option>
-                  {years.map((year) => <option key={year} value={year}>{year}</option>)}
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" aria-hidden="true" />
-              </span>
+              <input
+                type="number"
+                inputMode="numeric"
+                min="1888"
+                max={newestYear}
+                step="1"
+                value={filters.year}
+                onChange={(event) => updateFilter("year", event.target.value)}
+                placeholder="Any year"
+                className="mt-2 min-h-11 w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 text-sm font-bold normal-case tracking-normal text-gray-100 outline-none transition-colors placeholder:text-gray-400 hover:border-white/20 focus:border-red-500 focus:ring-2 focus:ring-red-500/30"
+              />
             </label>
             <FilterChipGroup label="Minimum rating" value={filters.minimumRating} options={ratingOptions} onChange={(value) => updateFilter("rating", value)} />
             <FilterChipGroup label="Sort by" value={filters.sortBy} options={availableSortOptions} onChange={(value) => updateFilter("sort", value)} />

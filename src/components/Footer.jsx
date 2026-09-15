@@ -21,7 +21,7 @@ const Footer = () => {
             href={REPOSITORY_URL}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 font-bold text-gray-200 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white"
+            className="inline-flex min-h-12 min-w-12 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 font-bold text-gray-200 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white"
             aria-label="View FlickMuse source code on GitHub"
           >
             <Github className="h-4 w-4" aria-hidden="true" />
