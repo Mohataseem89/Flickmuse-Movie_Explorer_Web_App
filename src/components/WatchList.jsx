@@ -11,6 +11,7 @@ import { Link } from "react-router-dom";
 import { getImageUrl } from "../api/tmdb";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { useGenres } from "../hooks/useGenres";
+import { getMediaPath } from "../utils/mediaUrl";
 
 const GENRE_MAP = {
   28: "Action",
@@ -240,7 +241,7 @@ const WatchList = ({ watchlist, handleRemoveFromWatchlist }) => {
                     className="grid grid-cols-[88px_minmax(0,1fr)_44px] gap-4 rounded-2xl border border-white/10 bg-[#11151c] p-3"
                   >
                     <Link
-                      to={"/movie/" + movie.id}
+                      to={getMediaPath(movie)}
                       className="aspect-[2/3] overflow-hidden rounded-xl bg-gray-900"
                     >
                       {posterUrl ? (
@@ -261,7 +262,7 @@ const WatchList = ({ watchlist, handleRemoveFromWatchlist }) => {
 
                     <div className="min-w-0 py-1">
                       <Link
-                        to={"/movie/" + movie.id}
+                        to={getMediaPath(movie)}
                         className="line-clamp-2 font-bold leading-5 text-white hover:text-red-400"
                       >
                         {title}
@@ -316,7 +317,7 @@ const WatchList = ({ watchlist, handleRemoveFromWatchlist }) => {
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-4">
                             <Link
-                              to={"/movie/" + movie.id}
+                              to={getMediaPath(movie)}
                               className="h-[84px] w-14 shrink-0 overflow-hidden rounded-xl bg-gray-900"
                             >
                               {posterUrl ? (
@@ -336,7 +337,7 @@ const WatchList = ({ watchlist, handleRemoveFromWatchlist }) => {
                             </Link>
                             <div className="min-w-0">
                               <Link
-                                to={"/movie/" + movie.id}
+                                to={getMediaPath(movie)}
                                 className="line-clamp-2 font-bold text-gray-100 transition-colors hover:text-red-400"
                               >
                                 {title}

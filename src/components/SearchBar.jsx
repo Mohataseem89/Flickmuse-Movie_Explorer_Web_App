@@ -7,6 +7,7 @@ import {
   getRecentSearches,
   saveRecentSearch,
 } from "../utils/searchHistory";
+import { getMediaPath } from "../utils/mediaUrl";
 
 const SearchBar = ({ compact = false, onNavigate }) => {
   const navigate = useNavigate();
@@ -77,7 +78,7 @@ const SearchBar = ({ compact = false, onNavigate }) => {
     setSuggestions([]);
     setActiveIndex(-1);
     setFocused(false);
-    navigate("/" + (movie.media_type === "tv" ? "tv" : "movie") + "/" + movie.id);
+    navigate(getMediaPath(movie));
     onNavigate?.();
   };
 

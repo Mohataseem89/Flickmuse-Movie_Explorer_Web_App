@@ -57,7 +57,7 @@ function App() {
 
       <Navbar watchlistCount={watchlist.length} />
 
-      <main id="main-content" tabIndex="-1" className="min-h-[100svh] outline-none">
+      <main id="main-content" tabIndex="-1" className="outline-none">
         <Suspense fallback={<PageLoader />}>
           <RouteTransition>
             <Routes>
@@ -74,7 +74,9 @@ function App() {
                 />
               }
             />
+            <Route path="/movie/:slug/:id" element={<MovieDetails {...discoveryProps} />} />
             <Route path="/movie/:id" element={<MovieDetails {...discoveryProps} />} />
+            <Route path="/tv/:slug/:id" element={<MovieDetails {...discoveryProps} mediaType="tv" />} />
             <Route path="/tv/:id" element={<MovieDetails {...discoveryProps} mediaType="tv" />} />
             <Route path="/person/:id" element={<PersonDetails {...discoveryProps} />} />
             <Route path="*" element={<NotFoundPage />} />

@@ -2,6 +2,7 @@ import { CalendarDays, Clapperboard, Info, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getImageUrl, getTrendingMovies } from "../api/tmdb";
+import { getMediaPath } from "../utils/mediaUrl";
 
 const FEATURED_CACHE_KEY = "FlickMuse_featured_movies";
 
@@ -221,7 +222,7 @@ const Banner = () => {
               type="button"
               disabled={!currentMovie.id}
               onClick={() =>
-                currentMovie.id && navigate("/movie/" + currentMovie.id)
+                currentMovie.id && navigate(getMediaPath(currentMovie, "movie"))
               }
               className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-6 font-bold text-white backdrop-blur-md transition-[transform,background-color] duration-200 hover:-translate-y-0.5 hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
             >

@@ -9,6 +9,7 @@ import {
 import MovieCards from "../components/MovieCards";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { textForMeta } from "../seo/site";
+import { getMediaPath } from "../utils/mediaUrl";
 
 export default function PersonDetails({
   watchlist,
@@ -202,7 +203,7 @@ export default function PersonDetails({
           <h2 id="filmography-title" className="mt-3 text-3xl font-black tracking-[-0.04em] sm:text-4xl">Filmography</h2>
           <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
             {filmography.map((movie) => (
-              <Link key={movie.credit_id || movie.id} to={'/movie/' + movie.id} className="group rounded-2xl border border-white/10 bg-white/[0.03] p-2 transition hover:-translate-y-1 hover:border-white/25 hover:bg-white/[0.07] focus:outline-none focus:ring-2 focus:ring-red-500">
+              <Link key={movie.credit_id || movie.id} to={getMediaPath(movie, "movie")} className="group rounded-2xl border border-white/10 bg-white/[0.03] p-2 transition hover:-translate-y-1 hover:border-white/25 hover:bg-white/[0.07] focus:outline-none focus:ring-2 focus:ring-red-500">
                 <img src={getImageUrl(movie.poster_path, 'w342')} alt={'View ' + movie.title} loading="lazy" className="aspect-[2/3] w-full rounded-xl object-cover" />
                 <p className="mt-3 truncate font-bold text-white">{movie.title}</p>
                 <p className="mt-1 truncate text-xs text-gray-400">{movie.character || movie.release_date?.slice(0, 4) || 'Movie credit'}</p>

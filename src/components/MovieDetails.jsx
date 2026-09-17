@@ -14,6 +14,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { getImageUrl, getMovieBundle, getTVBundle } from "../api/tmdb";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { absoluteUrl, textForMeta } from "../seo/site";
+import { getMediaPath, slugifyTitle } from "../utils/mediaUrl";
 import MovieCards from "./MovieCards";
 import TrailerModal from "./TrailerModal";
 
@@ -78,12 +79,13 @@ export default function MovieDetails({
   handleRemoveFromWatchlist,
   mediaType = "movie",
 }) {
-  const { id } = useParams();
+  const { id, slug } = useParams();
   const navigate = useNavigate();
   const [movie, setMovie] = useState(null);
   const [activeTrailer, setActiveTrailer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const canonicalPath = movie ? getMediaPath(movie, mediaType) : undefined;
 
   usePageMetadata({
     title: movie
@@ -100,14 +102,15 @@ export default function MovieDetails({
         ? textForMeta(movie.overview)
         : "Explore movie details, trailers, cast, crew, recommendations, and similar titles on FlickMuse.",
     image: getImageUrl(movie?.backdrop_path, "w1280"),
-    type: "video.movie",
+    canonicalPath,
+    type: mediaType === "tv" ? "video.tv_show" : "video.movie",
     structuredData: movie
       ? {
           "@context": "https://schema.org",
           "@graph": [
             {
               "@type": mediaType === "tv" ? "TVSeries" : "Movie",
-              "@id": absoluteUrl("/" + mediaType + "/" + movie.id),
+              "@id": absoluteUrl(canonicalPath),
               name: movie.title || movie.name,
               description: movie.overview || undefined,
               image: getImageUrl(movie.poster_path, "w500") || undefined,
@@ -129,7 +132,7 @@ export default function MovieDetails({
               "@type": "BreadcrumbList",
               itemListElement: [
                 { "@type": "ListItem", position: 1, name: "Home", item: absoluteUrl("/") },
-                { "@type": "ListItem", position: 2, name: mediaType === "tv" ? "TV show" : "Movie", item: absoluteUrl("/" + mediaType + "/" + movie.id) },
+                { "@type": "ListItem", position: 2, name: mediaType === "tv" ? "TV show" : "Movie", item: absoluteUrl(canonicalPath) },
                 { "@type": "ListItem", position: 3, name: movie.title || movie.name },
               ],
             },
@@ -154,6 +157,14 @@ export default function MovieDetails({
 
     return () => controller.abort();
   }, [id, mediaType]);
+
+  useEffect(() => {
+    if (!movie) return;
+    const expectedSlug = slugifyTitle(movie.title || movie.name);
+    if (slug !== expectedSlug) {
+      navigate(getMediaPath(movie, mediaType), { replace: true });
+    }
+  }, [mediaType, movie, navigate, slug]);
 
   const trailer = useMemo(() => {
     const videos = movie?.videos?.results || [];

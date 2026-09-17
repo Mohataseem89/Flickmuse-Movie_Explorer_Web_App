@@ -1,6 +1,7 @@
 import { Bookmark, Film, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getImageUrl } from "../api/tmdb";
+import { getMediaPath } from "../utils/mediaUrl";
 
 const MovieCards = ({
   movie,
@@ -14,6 +15,7 @@ const MovieCards = ({
   const smallPosterUrl = getImageUrl(movie.poster_path, "w185");
   const posterUrl = getImageUrl(movie.poster_path, "w342");
   const releaseYear = (movie.release_date || movie.first_air_date)?.slice(0, 4) || "TBA";
+  const detailsPath = getMediaPath(movie, mediaType);
   const prefetchDetails = () => {
     import("./MovieDetails");
   };
@@ -22,7 +24,7 @@ const MovieCards = ({
     <article className="group min-w-0">
       <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#11151c] shadow-lg shadow-black/20 transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-1 hover:border-white/20 hover:shadow-2xl hover:shadow-black/35">
         <Link
-          to={"/" + mediaType + "/" + movie.id}
+          to={detailsPath}
           className="block aspect-[2/3] overflow-hidden"
           onMouseEnter={prefetchDetails}
           onFocus={prefetchDetails}
@@ -35,7 +37,6 @@ const MovieCards = ({
               sizes="(max-width: 640px) 42vw, (max-width: 1024px) 25vw, 190px"
               alt={title + " poster"}
               loading="lazy"
-              fetchPriority="low"
               decoding="async"
               width="342"
               height="513"
@@ -50,44 +51,42 @@ const MovieCards = ({
           <span className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/70 to-transparent opacity-70" />
         </Link>
 
+        <button
+          type="button"
+          onClick={() =>
+            isInWatchlist
+              ? handleRemoveFromWatchlist(movie)
+              : handleAddToWatchlist(movie)
+          }
+          className={
+            "absolute right-2 top-2 flex h-11 w-11 items-center justify-center rounded-xl border shadow-lg backdrop-blur-md transition-[transform,background-color,border-color] duration-200 hover:scale-105 " +
+            (isInWatchlist
+              ? "border-red-400/40 bg-red-600 text-white"
+              : "border-white/20 bg-black/55 text-white hover:bg-black/75")
+          }
+          aria-label={
+            (isInWatchlist ? "Remove " : "Add ") +
+            title +
+            (isInWatchlist ? " from watchlist" : " to watchlist")
+          }
+          title={isInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
+        >
+          <Bookmark
+            className={"h-5 w-5 " + (isInWatchlist ? "fill-current" : "")}
+            aria-hidden="true"
+          />
+        </button>
       </div>
 
       <div className="px-1 pt-3">
-        <div className="flex items-start gap-2">
-          <Link
-            to={"/" + mediaType + "/" + movie.id}
-            className="block min-w-0 flex-1 rounded-md text-[15px] font-bold leading-5 text-gray-100 transition-colors hover:text-red-400 sm:text-base"
-            onMouseEnter={prefetchDetails}
-            onFocus={prefetchDetails}
-          >
-            <span className="line-clamp-2 min-h-10">{title}</span>
-          </Link>
-          <button
-            type="button"
-            onClick={() =>
-              isInWatchlist
-                ? handleRemoveFromWatchlist(movie)
-                : handleAddToWatchlist(movie)
-            }
-            className={
-              "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border transition-[transform,background-color,border-color] duration-200 hover:scale-105 " +
-              (isInWatchlist
-                ? "border-red-400/40 bg-red-600 text-white"
-                : "border-white/10 bg-white/[0.04] text-gray-200 hover:border-white/20 hover:bg-white/10 hover:text-white")
-            }
-            aria-label={
-              (isInWatchlist ? "Remove " : "Add ") +
-              title +
-              (isInWatchlist ? " from watchlist" : " to watchlist")
-            }
-            title={isInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
-          >
-            <Bookmark
-              className={"h-5 w-5 " + (isInWatchlist ? "fill-current" : "")}
-              aria-hidden="true"
-            />
-          </button>
-        </div>
+        <Link
+          to={detailsPath}
+          className="block rounded-md text-[15px] font-bold leading-5 text-gray-100 transition-colors hover:text-red-400 sm:text-base"
+          onMouseEnter={prefetchDetails}
+          onFocus={prefetchDetails}
+        >
+          <span className="line-clamp-2 min-h-10">{title}</span>
+        </Link>
         <div className="mt-1.5 flex items-center justify-between gap-2 text-xs font-medium text-gray-400 sm:text-sm">
           <span>{releaseYear}</span>
           <span className="flex items-center gap-1 text-gray-300">

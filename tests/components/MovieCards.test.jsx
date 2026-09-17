@@ -26,8 +26,11 @@ describe("MovieCards", () => {
         />
       </MemoryRouter>
     );
-
-    expect(screen.getByRole("link", { name: /view details for the example show/i })).toHaveAttribute("href", "/tv/123");
+    expect(
+      screen.getByRole("link", {
+        name: /view details for the example show/i,
+      })
+    ).toHaveAttribute("href", "/tv/the-example-show/123");
     expect(screen.getByAltText("The Example Show poster")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /add the example show to watchlist/i }));
