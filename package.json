@@ -21,11 +21,11 @@
   ],
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node --env-file=.env scripts/generate-seo-pages.mjs",
+    "build": "vite build && node scripts/generate-seo-pages.mjs",
     "lint": "eslint .",
     "test:utils": "node --test tests/*.test.js",
     "test:components": "vitest run",
