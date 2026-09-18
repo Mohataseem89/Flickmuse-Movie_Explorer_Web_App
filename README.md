@@ -6,9 +6,6 @@ FlickMuse is a movie and TV discovery application built with React and TMDb. Exp
 
 [Live demo](https://flickmuse.mohataseem.com/) · [Source code](https://github.com/Mohataseem89/FilmWick-Movie_Explorer_Web_App)
 
-## Product preview
-
-The live product is the source of truth because TMDb content changes over time. The repository includes a [screenshot capture guide](docs/SCREENSHOTS.md) for maintaining three realistic portfolio screenshots—home, movie detail, and discovery filters—without committing mocked artwork or stale browser chrome.
 
 ## Highlights
 
@@ -89,13 +86,6 @@ tests/            # Regression tests
 docs/             # Architecture, testing, performance, and screenshot notes
 ```
 
-## Engineering notes
-
-- [Architecture](docs/ARCHITECTURE.md)
-- [Testing](docs/TESTING.md)
-- [Performance audit](docs/PERFORMANCE.md)
-- [Screenshot capture](docs/SCREENSHOTS.md)
-- [Resume-ready project bullets](docs/RESUME.md)
 
 ## Deployment
 
