@@ -7,7 +7,6 @@ import ScrollToTop from "./components/ScrollToTop";
 import Toast from "./components/Toast";
 import RouteTransition from "./components/RouteTransition";
 import { useWatchlist } from "./hooks/useWatchlist";
-import { Analytics } from '@vercel/analytics/next';
 
 const HomePage = lazy(() => import("./pages/HomePage"));
 const DiscoverPage = lazy(() => import("./pages/DiscoverPage"));
@@ -88,7 +87,6 @@ function App() {
 
       <Footer />
       <Toast key={toast?.id} toast={toast} onClose={() => setToast(null)} />
-      <Analytics />
 
     </BrowserRouter>
   );
