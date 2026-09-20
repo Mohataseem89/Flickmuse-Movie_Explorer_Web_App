@@ -7,6 +7,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import Toast from "./components/Toast";
 import RouteTransition from "./components/RouteTransition";
 import { useWatchlist } from "./hooks/useWatchlist";
+import { Analytics } from '@vercel/analytics/next';
 
 const HomePage = lazy(() => import("./pages/HomePage"));
 const DiscoverPage = lazy(() => import("./pages/DiscoverPage"));
@@ -61,25 +62,25 @@ function App() {
         <Suspense fallback={<PageLoader />}>
           <RouteTransition>
             <Routes>
-            <Route path="/" element={<HomePage {...discoveryProps} />} />
-            <Route path="/discover" element={<DiscoverPage {...discoveryProps} />} />
-            <Route path="/tv" element={<TVShowsPage {...discoveryProps} />} />
-            <Route path="/search" element={<SearchPage {...discoveryProps} />} />
-            <Route
-              path="/watchlist"
-              element={
-                <WatchList
-                  watchlist={watchlist}
-                  handleRemoveFromWatchlist={handleRemoveFromWatchlist}
-                />
-              }
-            />
-            <Route path="/movie/:slug/:id" element={<MovieDetails {...discoveryProps} />} />
-            <Route path="/movie/:id" element={<MovieDetails {...discoveryProps} />} />
-            <Route path="/tv/:slug/:id" element={<MovieDetails {...discoveryProps} mediaType="tv" />} />
-            <Route path="/tv/:id" element={<MovieDetails {...discoveryProps} mediaType="tv" />} />
-            <Route path="/person/:id" element={<PersonDetails {...discoveryProps} />} />
-            <Route path="*" element={<NotFoundPage />} />
+              <Route path="/" element={<HomePage {...discoveryProps} />} />
+              <Route path="/discover" element={<DiscoverPage {...discoveryProps} />} />
+              <Route path="/tv" element={<TVShowsPage {...discoveryProps} />} />
+              <Route path="/search" element={<SearchPage {...discoveryProps} />} />
+              <Route
+                path="/watchlist"
+                element={
+                  <WatchList
+                    watchlist={watchlist}
+                    handleRemoveFromWatchlist={handleRemoveFromWatchlist}
+                  />
+                }
+              />
+              <Route path="/movie/:slug/:id" element={<MovieDetails {...discoveryProps} />} />
+              <Route path="/movie/:id" element={<MovieDetails {...discoveryProps} />} />
+              <Route path="/tv/:slug/:id" element={<MovieDetails {...discoveryProps} mediaType="tv" />} />
+              <Route path="/tv/:id" element={<MovieDetails {...discoveryProps} mediaType="tv" />} />
+              <Route path="/person/:id" element={<PersonDetails {...discoveryProps} />} />
+              <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </RouteTransition>
         </Suspense>
@@ -87,6 +88,8 @@ function App() {
 
       <Footer />
       <Toast key={toast?.id} toast={toast} onClose={() => setToast(null)} />
+      <Analytics />
+
     </BrowserRouter>
   );
 }
