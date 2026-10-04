@@ -9,14 +9,14 @@ import {
 import MovieCards from "../components/MovieCards";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { textForMeta } from "../seo/site";
-import { getMediaPath } from "../utils/mediaUrl";
+import { getMediaPath, getPersonPath, slugifyTitle } from "../utils/mediaUrl";
 
 export default function PersonDetails({
   watchlist,
   handleAddToWatchlist,
   handleRemoveFromWatchlist,
 }) {
-  const { id } = useParams();
+  const { id, slug } = useParams();
   const navigate = useNavigate();
   const [person, setPerson] = useState(null);
   const [credits, setCredits] = useState([]);
@@ -30,7 +30,7 @@ export default function PersonDetails({
       "Explore this film professional's biography and movie credits on FlickMuse.",
     image: getImageUrl(person?.profile_path, "h632"),
     type: "profile",
-    canonicalPath: person ? "/person/" + person.id : undefined,
+    canonicalPath: person ? getPersonPath(person) : undefined,
     robots: error || (!loading && !person) ? "noindex,follow" : "index,follow",
     structuredData: person
       ? {
@@ -55,6 +55,10 @@ export default function PersonDetails({
       getPersonCombinedCredits(id, controller.signal),
     ])
       .then(([personData, creditData]) => {
+        const canonicalPath = getPersonPath(personData);
+        if (slug !== slugifyTitle(personData.name)) {
+          navigate(canonicalPath, { replace: true });
+        }
         setPerson(personData);
         setCredits([...(creditData.cast || []), ...(creditData.crew || [])].map((credit) => ({ ...credit, media_type: credit.media_type === "tv" ? "tv" : "movie" })));
       })
@@ -66,7 +70,7 @@ export default function PersonDetails({
       });
 
     return () => controller.abort();
-  }, [id]);
+  }, [id, navigate, slug]);
 
   const knownFor = useMemo(() => {
     const unique = new Map();

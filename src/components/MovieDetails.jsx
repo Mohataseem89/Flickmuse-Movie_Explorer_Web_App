@@ -14,7 +14,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { getImageUrl, getMovieBundle, getTVBundle } from "../api/tmdb";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { absoluteUrl, textForMeta } from "../seo/site";
-import { getMediaPath, slugifyTitle } from "../utils/mediaUrl";
+import { getMediaPath, getPersonPath, slugifyTitle } from "../utils/mediaUrl";
 import { getInitialRegion, getRegionName, saveRegion, WATCH_REGIONS } from "../utils/region";
 import MovieCards from "./MovieCards";
 import TrailerModal from "./TrailerModal";
@@ -450,7 +450,7 @@ export default function MovieDetails({
                 return (
                   <Link
                     key={person.cast_id || person.credit_id}
-                    to={"/person/" + person.id}
+                    to={getPersonPath(person)}
                     className="group w-[38vw] max-w-[160px] shrink-0 snap-start"
                   >
                     <span className="block aspect-[2/3] overflow-hidden rounded-2xl border border-white/10 bg-[#11151c]">
@@ -483,7 +483,7 @@ export default function MovieDetails({
                   {crew.map((person) => (
                     <Link
                       key={person.id + "-" + person.job}
-                      to={"/person/" + person.id}
+                      to={getPersonPath(person)}
                       className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 transition-colors hover:border-red-500/40"
                     >
                       <span className="block font-bold text-gray-100">{person.name}</span>

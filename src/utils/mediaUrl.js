@@ -28,3 +28,11 @@ export function getMediaPathFromParts(mediaType, title, id) {
   if (!id) return "/";
   return `/${normalizeMediaType(mediaType)}/${slugifyTitle(title)}/${id}`;
 }
+
+export function getPersonPath(personOrName, id) {
+  const person = typeof personOrName === "object" && personOrName !== null ? personOrName : null;
+  const personId = person?.id ?? id;
+  const name = person?.name ?? personOrName ?? "person";
+  if (!personId) return "/";
+  return `/person/${slugifyTitle(name)}/${personId}`;
+}

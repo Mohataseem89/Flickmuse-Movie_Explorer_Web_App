@@ -7,7 +7,7 @@ import {
   getRecentSearches,
   saveRecentSearch,
 } from "../utils/searchHistory";
-import { getMediaPath } from "../utils/mediaUrl";
+import { getMediaPath, getPersonPath } from "../utils/mediaUrl";
 
 const SearchBar = ({ compact = false, onNavigate }) => {
   const navigate = useNavigate();
@@ -78,7 +78,7 @@ const SearchBar = ({ compact = false, onNavigate }) => {
     setSuggestions([]);
     setActiveIndex(-1);
     setFocused(false);
-    navigate(movie.media_type === "person" ? `/person/${movie.id}` : getMediaPath(movie));
+    navigate(movie.media_type === "person" ? getPersonPath(movie) : getMediaPath(movie));
     onNavigate?.();
   };
 

@@ -2,6 +2,7 @@ import { UserRound } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { getImageUrl } from "../api/tmdb";
+import { getPersonPath } from "../utils/mediaUrl";
 
 export default function PersonCard({ person }) {
   const photo = getImageUrl(
@@ -17,7 +18,7 @@ export default function PersonCard({ person }) {
 
   return (
     <Link
-      to={`/person/${person.id}`}
+      to={getPersonPath(person)}
       className="group rounded-2xl border border-white/10 bg-[#11151c] p-3 transition hover:border-white/20"
     >
       <span className="block aspect-[2/3] overflow-hidden rounded-xl bg-[#171c25]">

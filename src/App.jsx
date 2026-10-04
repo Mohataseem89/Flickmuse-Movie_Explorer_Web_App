@@ -87,6 +87,7 @@ function App() {
               <Route path="/movie/:id" element={<MovieDetails {...discoveryProps} />} />
               <Route path="/tv/:slug/:id" element={<MovieDetails {...discoveryProps} mediaType="tv" />} />
               <Route path="/tv/:id" element={<MovieDetails {...discoveryProps} mediaType="tv" />} />
+              <Route path="/person/:slug/:id" element={<PersonDetails {...discoveryProps} />} />
               <Route path="/person/:id" element={<PersonDetails {...discoveryProps} />} />
               <Route path="/collection/:slug/:id" element={<CollectionPage {...discoveryProps} />} />
               <Route path="/collection/:id" element={<CollectionPage {...discoveryProps} />} />
