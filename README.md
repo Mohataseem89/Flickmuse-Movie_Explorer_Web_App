@@ -1,10 +1,10 @@
 # FlickMuse — Movie Discovery, Trailers & Cast
 
-[![CI](https://github.com/Mohataseem89/FilmWick-Movie_Explorer_Web_App/actions/workflows/ci.yml/badge.svg)](https://github.com/Mohataseem89/FilmWick-Movie_Explorer_Web_App/actions/workflows/ci.yml)
+[![CI](https://https://github.com/Mohataseem89/Flickmuse-Movie_Explorer_Web_App/actions/workflows/ci.yml/badge.svg)](https://https://github.com/Mohataseem89/Flickmuse-Movie_Explorer_Web_App/actions/workflows/ci.yml)
 
 FlickMuse is a movie and TV discovery application built with React and TMDb. Explore popular, trending, upcoming, and top-rated titles; use shareable filters; watch trailers; browse cast and crew; check India streaming availability when TMDb provides it; and save a personal watchlist.
 
-[Live demo](https://flickmuse.mohataseem.com/) · [Source code](https://github.com/Mohataseem89/FilmWick-Movie_Explorer_Web_App)
+[Live demo](https://flickmuse.mohataseem.com/) · [Source code](https://github.com/Mohataseem89/FlickMuse-Movie_Explorer_Web_App)
 
 
 ## Highlights
@@ -45,8 +45,8 @@ Movie data is requested through `api/tmdb.js`, a Vercel serverless proxy. The TM
 Requirements: Node.js 20+ and a TMDb API key.
 
 ```bash
-git clone https://github.com/Mohataseem89/FilmWick-Movie_Explorer_Web_App.git
-cd FilmWick-Movie_Explorer_Web_App
+git clone https://github.com/Mohataseem89/Flickmuse-Movie_Explorer_Web_App.git
+cd FlickMuse-Movie_Explorer_Web_App
 npm install
 cp .env.example .env
 npm run dev

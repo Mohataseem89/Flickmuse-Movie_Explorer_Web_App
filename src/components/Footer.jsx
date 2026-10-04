@@ -1,6 +1,6 @@
 import { Film, Github } from "lucide-react";
 
-const REPOSITORY_URL = "https://github.com/Mohataseem89/FilmWick-Movie_Explorer_Web_App";
+const REPOSITORY_URL = "https://github.com/Mohataseem89/Flickmuse-Movie_Explorer_Web_App";
 
 const Footer = () => {
   return (

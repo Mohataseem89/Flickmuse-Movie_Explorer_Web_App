@@ -7,10 +7,10 @@
   "homepage": "https://flickmuse.mohataseem.com/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Mohataseem89/FilmWick-Movie_Explorer_Web_App.git"
+    "url": "git+https://github.com/Mohataseem89/Flickmuse-Movie_Explorer_Web_App.git"
   },
   "bugs": {
-    "url": "https://github.com/Mohataseem89/FilmWick-Movie_Explorer_Web_App/issues"
+    "url": "https://github.com/Mohataseem89/Flickmuse-Movie_Explorer_Web_App/issues"
   },
   "keywords": [
     "react",
