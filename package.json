@@ -32,7 +32,10 @@
     "test:components": "vitest run",
     "test": "npm run test:utils && npm run test:components",
     "check": "npm run lint && npm run test && npm run build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "playwright test",
+    "lighthouse": "lhci autorun"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.11",
@@ -57,6 +60,9 @@
     "jsdom": "^30.0.1",
     "tailwindcss": "^4.1.11",
     "vite": "^7.0.0",
-    "vitest": "^5.0.0"
+    "vitest": "^5.0.0",
+    "@lhci/cli": "^0.15.1",
+    "@playwright/test": "^1.55.1",
+    "typescript": "^5.9.2"
   }
 }

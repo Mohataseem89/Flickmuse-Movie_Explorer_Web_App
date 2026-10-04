@@ -4,7 +4,7 @@
 
 FlickMuse is a movie and TV discovery application built with React and TMDb. Explore popular, trending, upcoming, and top-rated titles; use shareable filters; watch trailers; browse cast and crew; check India streaming availability when TMDb provides it; and save a personal watchlist.
 
-[Live demo](https://flickmuse.mohataseem.com/) · [Source code](https://github.com/Mohataseem89/Flickmuse-Movie_Explorer_Web_App) · [Local development](docs/LOCAL_DEVELOPMENT.md) · [Security](docs/SECURITY.md)
+[Live demo](https://flickmuse.mohataseem.com/) · [Source code](https://github.com/Mohataseem89/Flickmuse-Movie_Explorer_Web_App) · 
 
 
 ## Highlights
@@ -39,6 +39,8 @@ Movie data is requested through `api/tmdb.js`, a narrowly allowlisted Vercel ser
 | TMDb API | Movie, person, image, and video data |
 | Vitest + React Testing Library + Node test runner | Component, interaction, accessibility, and utility checks |
 | ESLint | Code-quality checks |
+| TypeScript | Targeted type safety at API/query boundaries |
+| Playwright + Lighthouse CI | Critical browser flows and quality regression budgets |
 
 ## Run locally
 
@@ -68,10 +70,13 @@ Never commit `.env.local`. In Vercel, add the same `TMDB_API_KEY` environment va
 | `npm run dev` | Start local development |
 | `npm run dev:full` | Start Vercel local development with the TMDb proxy |
 | `npm run lint` | Run ESLint |
+| `npm run typecheck` | Type-check targeted TypeScript boundaries |
 | `npm run test` | Run utility, contrast, and component tests |
 | `npm run test:utils` | Run storage and contrast tests |
 | `npm run test:components` | Run React component tests in JSDOM |
 | `npm run build` | Create a production build |
+| `npm run test:e2e` | Run Playwright critical-flow tests |
+| `npm run lighthouse` | Run Lighthouse CI against the production build |
 | `npm run check` | Run lint, tests, and build |
 
 ## Project map
@@ -85,10 +90,8 @@ src/hooks/        # Metadata and watchlist hooks
 src/utils/        # Browser-storage and domain helpers
 public/           # Favicons, social image, manifest, robots, sitemap
 tests/            # Regression tests
-docs/             # Architecture, testing, performance, and screenshot notes
 ```
 
-See [Local development](docs/LOCAL_DEVELOPMENT.md), [SEO](docs/SEO.md), and [Security](docs/SECURITY.md) for the implementation details and operational checks.
 
 
 ## Deployment
