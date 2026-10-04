@@ -206,7 +206,7 @@ export default function PersonDetails({
           <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
             {filmography.map((movie) => (
               <Link key={movie.credit_id || movie.id} to={getMediaPath(movie, "movie")} className="group rounded-2xl border border-white/10 bg-white/[0.03] p-2 transition hover:-translate-y-1 hover:border-white/25 hover:bg-white/[0.07] focus:outline-none focus:ring-2 focus:ring-red-500">
-                <img src={getImageUrl(movie.poster_path, 'w342')} alt={'View ' + movie.title} loading="lazy" className="aspect-[2/3] w-full rounded-xl object-cover" />
+                <img src={getImageUrl(movie.poster_path, 'w342')} alt={'View ' + movie.title} loading="lazy" decoding="async" width="342" height="513" className="aspect-[2/3] w-full rounded-xl object-cover" />
                 <p className="mt-3 truncate font-bold text-white">{movie.title}</p>
                 <p className="mt-1 truncate text-xs text-gray-400">{movie.character || movie.release_date?.slice(0, 4) || 'Movie credit'}</p>
                 {movie.vote_average > 0 && <p className="mt-2 flex items-center gap-1 text-xs font-bold text-amber-300"><Star className="h-3.5 w-3.5 fill-current" aria-hidden="true" />{movie.vote_average.toFixed(1)}</p>}
