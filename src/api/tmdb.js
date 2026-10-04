@@ -175,9 +175,9 @@ export function getUpcomingMovies(signal) {
   });
 }
 
-export function getTopRatedMovies(signal) {
+export function getTopRatedMovies(page = 1, signal) {
   return tmdbRequest("/movie/top_rated", {
-    params: { page: "1" },
+    params: { page: String(page) },
     signal,
   });
 }

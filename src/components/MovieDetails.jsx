@@ -246,7 +246,10 @@ export default function MovieDetails({
             sizes="100vw"
             alt=""
             loading="eager"
+            fetchPriority="high"
             decoding="async"
+            width="1280"
+            height="720"
             className="absolute inset-0 h-full w-full object-cover"
           />
         ) : (
@@ -333,6 +336,8 @@ export default function MovieDetails({
                 alt={title + " poster"}
                 width="500"
                 height="750"
+                loading="lazy"
+                decoding="async"
                 className="h-full w-full object-cover"
               />
             ) : (

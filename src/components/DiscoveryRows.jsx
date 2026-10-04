@@ -64,7 +64,7 @@ export default function DiscoveryRows({
     Promise.all([
       getNowPlayingMovies(controller.signal),
       getUpcomingMovies(controller.signal),
-      getTopRatedMovies(controller.signal),
+      getTopRatedMovies(1, controller.signal),
     ])
       .then(([nowPlaying, upcoming, topRated]) => {
         setRows({

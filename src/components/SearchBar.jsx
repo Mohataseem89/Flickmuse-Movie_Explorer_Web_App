@@ -218,6 +218,8 @@ const SearchBar = ({ compact = false, onNavigate }) => {
                             alt=""
                             width="92"
                             height="138"
+                            loading="lazy"
+                            decoding="async"
                             className="h-full w-full object-cover"
                           />
                         ) : (

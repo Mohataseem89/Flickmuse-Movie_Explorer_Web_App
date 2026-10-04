@@ -5,6 +5,7 @@ export default function TrailerModal({ trailer, onClose }) {
   const dialogRef = useRef(null);
   const closeButtonRef = useRef(null);
   const previousFocusRef = useRef(null);
+
   const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
@@ -35,10 +36,16 @@ export default function TrailerModal({ trailer, onClose }) {
       const first = els[0];
       const last = els[els.length - 1];
 
-      if (e.shiftKey && document.activeElement === first) {
+      if (
+        e.shiftKey &&
+        document.activeElement === first
+      ) {
         e.preventDefault();
         last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
+      } else if (
+        !e.shiftKey &&
+        document.activeElement === last
+      ) {
         e.preventDefault();
         first.focus();
       }
@@ -56,6 +63,7 @@ export default function TrailerModal({ trailer, onClose }) {
   if (!trailer) return null;
 
   const title = trailer.name || "Official trailer";
+
   const thumb = `https://i.ytimg.com/vi/${trailer.key}/hqdefault.jpg`;
 
   return (
@@ -115,6 +123,9 @@ export default function TrailerModal({ trailer, onClose }) {
                 alt=""
                 className="h-full w-full object-cover opacity-80"
                 loading="lazy"
+                decoding="async"
+                width="480"
+                height="360"
               />
 
               <span className="absolute inset-0 bg-black/20" />

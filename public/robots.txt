@@ -2,5 +2,8 @@ User-agent: *
 Allow: /
 Disallow: /search
 Disallow: /watchlist
+Disallow: /list
+Disallow: /compare
+Disallow: /discover/tonight
 
 Sitemap: https://flickmuse.mohataseem.com/sitemap.xml
