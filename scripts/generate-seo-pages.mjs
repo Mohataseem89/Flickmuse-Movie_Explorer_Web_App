@@ -34,7 +34,7 @@ async function tmdb(path, params = {}) {
 
   url.searchParams.set(
     "api_key",
-    process.env.TMDB_API_KEY
+    process.env.API_KEY
   );
 
   url.searchParams.set("language", "en-US");
@@ -394,12 +394,12 @@ async function run() {
 
   try {
     if (
-      !process.env.TMDB_API_KEY ||
-      process.env.TMDB_API_KEY ===
+      !process.env.API_KEY ||
+      process.env.API_KEY ===
         "ci-placeholder-key"
     ) {
       throw new Error(
-        "TMDB_API_KEY unavailable"
+        "API_KEY unavailable"
       );
     }
 
