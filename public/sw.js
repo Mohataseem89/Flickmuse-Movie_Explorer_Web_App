@@ -1,4 +1,4 @@
-const VERSION = "flickmuse-v1";
+const VERSION = "flickmuse-v2";
 
 const SHELL = `${VERSION}-shell`;
 const IMAGES = `${VERSION}-tmdb-images`;
@@ -13,12 +13,7 @@ const SHELL_ASSETS = [
 ];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches
-      .open(SHELL)
-      .then((cache) => cache.addAll(SHELL_ASSETS))
-  );
-
+  event.waitUntil(caches.open(SHELL).then((cache) => cache.addAll(SHELL_ASSETS)));
   self.skipWaiting();
 });
 
@@ -30,12 +25,12 @@ self.addEventListener("activate", (event) => {
       await Promise.all(
         keys
           .filter(
-            (k) =>
-              k.startsWith("flickmuse-") &&
-              k !== SHELL &&
-              k !== IMAGES
+            (key) =>
+              key.startsWith("flickmuse-") &&
+              key !== SHELL &&
+              key !== IMAGES
           )
-          .map((k) => caches.delete(k))
+          .map((key) => caches.delete(key))
       );
 
       await self.clients.claim();
@@ -54,11 +49,7 @@ async function trim(cacheName, max) {
 
 function isFresh(response, maxAgeMs) {
   const date = response?.headers.get("date");
-
-  return (
-    !date ||
-    Date.now() - new Date(date).getTime() < maxAgeMs
-  );
+  return !date || Date.now() - new Date(date).getTime() < maxAgeMs;
 }
 
 self.addEventListener("fetch", (event) => {
@@ -70,44 +61,40 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
 
-  // Never cache API requests.
+  // API responses must always come from the network.
   if (url.pathname.startsWith("/api/")) {
     return;
   }
 
-  // TMDB image caching
+  // Vite emits content-hashed JS/CSS chunks under /assets/.
+  // Do not put them behind a service-worker cache. A stale service worker can
+  // otherwise keep an old application shell alive after a deployment and make
+  // that shell request chunks that no longer exist.
+  if (
+    url.origin === self.location.origin &&
+    url.pathname.startsWith("/assets/")
+  ) {
+    return;
+  }
+
   if (url.hostname === "image.tmdb.org") {
     event.respondWith(
       caches.open(IMAGES).then(async (cache) => {
         const cached = await cache.match(request);
 
-        if (
-          cached &&
-          !isFresh(
-            cached,
-            7 * 24 * 60 * 60 * 1000
-          )
-        ) {
+        if (cached && !isFresh(cached, 7 * 24 * 60 * 60 * 1000)) {
           await cache.delete(request);
         }
 
         const freshCached =
-          cached &&
-          isFresh(
-            cached,
-            7 * 24 * 60 * 60 * 1000
-          )
+          cached && isFresh(cached, 7 * 24 * 60 * 60 * 1000)
             ? cached
             : null;
 
         const network = fetch(request)
           .then((response) => {
             if (response.ok) {
-              cache.put(
-                request,
-                response.clone()
-              );
-
+              cache.put(request, response.clone());
               trim(IMAGES, 60);
             }
 
@@ -122,16 +109,15 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Navigation requests
+  // Always prefer the current deployed HTML for navigations. The cached root
+  // remains only as an offline fallback.
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const copy = response.clone();
-
-          caches
-            .open(SHELL)
-            .then((cache) => cache.put("/", copy));
+          if (response.ok) {
+            caches.open(SHELL).then((cache) => cache.put("/", response.clone()));
+          }
 
           return response;
         })
@@ -141,15 +127,11 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Same-origin static assets
+  // Cache-first is safe for the small, stable PWA shell files above, but not
+  // for Vite's deployment-specific /assets/ chunks (explicitly excluded).
   if (url.origin === self.location.origin) {
     event.respondWith(
-      caches
-        .match(request)
-        .then(
-          (cached) =>
-            cached || fetch(request)
-        )
+      caches.match(request).then((cached) => cached || fetch(request))
     );
   }
 });
