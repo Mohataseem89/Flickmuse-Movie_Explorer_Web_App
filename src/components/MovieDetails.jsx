@@ -15,6 +15,7 @@ import { getImageUrl, getMovieBundle, getTVBundle } from "../api/tmdb";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { absoluteUrl, textForMeta } from "../seo/site";
 import { getMediaPath, slugifyTitle } from "../utils/mediaUrl";
+import { getInitialRegion, getRegionName, saveRegion, WATCH_REGIONS } from "../utils/region";
 import MovieCards from "./MovieCards";
 import TrailerModal from "./TrailerModal";
 
@@ -85,6 +86,7 @@ export default function MovieDetails({
   const [activeTrailer, setActiveTrailer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [watchRegion, setWatchRegion] = useState(getInitialRegion);
   const canonicalPath = movie ? getMediaPath(movie, mediaType) : undefined;
 
   usePageMetadata({
@@ -226,8 +228,10 @@ export default function MovieDetails({
   const posterUrl = getImageUrl(movie.poster_path, "w500");
   const releaseYear = (movie.release_date || movie.first_air_date)?.slice(0, 4) || "TBA";
   const title = movie.title || movie.name || "Untitled title";
-  const providerData = movie["watch/providers"]?.results?.IN;
-  const providers = providerData ? [...(providerData.flatrate || []), ...(providerData.rent || []), ...(providerData.buy || [])].filter((provider, index, list) => list.findIndex((item) => item.provider_id === provider.provider_id) === index).slice(0, 8) : [];
+  const providerData = movie["watch/providers"]?.results?.[watchRegion];
+  const providerGroups = [
+    ["Stream", providerData?.flatrate || []], ["Rent", providerData?.rent || []], ["Buy", providerData?.buy || []],
+  ].filter(([, providers]) => providers.length);
   const cast = (movie.credits?.cast || []).slice(0, 12);
   const recommendations = movie.recommendations?.results || [];
   const similar = movie.similar?.results || [];
@@ -367,8 +371,8 @@ export default function MovieDetails({
           </section>
 
           <section className="mt-9" aria-labelledby="where-to-watch-title">
-            <h2 id="where-to-watch-title" className="text-sm font-bold uppercase tracking-[0.18em] text-gray-400">Where to watch in India</h2>
-            {providers.length ? <div className="mt-3 flex flex-wrap gap-3">{providers.map((provider) => <a key={provider.provider_id} href={providerData.link} target="_blank" rel="noreferrer" className="group flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] p-2 pr-3 text-sm font-bold text-gray-200 transition hover:border-white/25 hover:bg-white/[0.08]"><img src={getImageUrl(provider.logo_path, "w92")} alt="" width="36" height="36" className="h-9 w-9 rounded-lg object-cover" />{provider.provider_name}</a>)}</div> : <p className="mt-3 text-sm leading-6 text-gray-400">Streaming availability is not currently listed for India.</p>}
+            <div className="flex flex-wrap items-end justify-between gap-3"><div><h2 id="where-to-watch-title" className="text-sm font-bold uppercase tracking-[0.18em] text-gray-400">Where to watch</h2><p className="mt-1 text-sm text-gray-400">Availability for {getRegionName(watchRegion)}</p></div><label className="text-xs font-bold text-gray-400">Region<span className="sr-only"> for watch providers</span><select value={watchRegion} onChange={(event)=>{setWatchRegion(event.target.value);saveRegion(event.target.value)}} className="ml-2 min-h-11 rounded-xl border border-white/10 bg-[#11151c] px-3 text-sm text-white">{WATCH_REGIONS.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select></label></div>
+            {providerGroups.length ? <div className="mt-4 space-y-4">{providerGroups.map(([label,providers])=><div key={label}><h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">{label}</h3><div className="mt-2 flex flex-wrap gap-3">{providers.slice(0,8).map((provider)=><a key={provider.provider_id} href={providerData.link} target="_blank" rel="noreferrer" className="group flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] p-2 pr-3 text-sm font-bold text-gray-200 transition hover:border-white/25 hover:bg-white/[0.08]"><img src={getImageUrl(provider.logo_path,"w92")} alt="" width="36" height="36" className="h-9 w-9 rounded-lg object-cover"/>{provider.provider_name}</a>)}</div></div>)}</div> : <p className="mt-3 text-sm leading-6 text-gray-400">Watch-provider information is not currently listed for {getRegionName(watchRegion)}.</p>}
           </section>
 
           <dl className="mt-9 grid gap-3 sm:grid-cols-3">

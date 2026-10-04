@@ -5,6 +5,7 @@ import {
   SlidersHorizontal,
   Star,
   Trash2,
+  Share2,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -12,6 +13,7 @@ import { getImageUrl } from "../api/tmdb";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { useGenres } from "../hooks/useGenres";
 import { getMediaPath } from "../utils/mediaUrl";
+import { encodeSharedList, MAX_SHARED_ITEMS } from "../utils/sharedList";
 
 const GENRE_MAP = {
   28: "Action",
@@ -102,6 +104,13 @@ const WatchList = ({ watchlist, handleRemoveFromWatchlist }) => {
     });
   }, [watchlist, search, selectedGenre, sortBy, genreMap]);
 
+  const shareWatchlist = async () => {
+    const items = encodeSharedList(watchlist);
+    const url = new URL("/list", window.location.origin); url.searchParams.set("items", items);
+    const shareData = { title: "My FlickMuse watchlist", text: "A watchlist shared from FlickMuse", url: url.toString() };
+    try { if (navigator.share) await navigator.share(shareData); else { await navigator.clipboard.writeText(shareData.url); window.alert("Share link copied to clipboard."); } } catch (error) { if (error.name !== "AbortError") console.error("Unable to share watchlist", error); }
+  };
+
   const clearFilters = () => {
     setSearch("");
     setSelectedGenre("All");
@@ -151,6 +160,7 @@ const WatchList = ({ watchlist, handleRemoveFromWatchlist }) => {
             <p className="mt-3 text-gray-400">
               {watchlist.length} {watchlist.length === 1 ? "movie" : "movies"} saved
             </p>
+            <button type="button" onClick={shareWatchlist} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 text-sm font-bold text-gray-200 hover:bg-white/[0.08]"><Share2 className="h-4 w-4" aria-hidden="true"/>Share watchlist{watchlist.length > MAX_SHARED_ITEMS ? ` (first ${MAX_SHARED_ITEMS})` : ""}</button>
           </div>
 
           <Link

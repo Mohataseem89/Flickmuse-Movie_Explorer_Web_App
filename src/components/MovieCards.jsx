@@ -22,7 +22,7 @@ const MovieCards = ({
 
   return (
     <article className="group min-w-0">
-      <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#11151c] shadow-lg shadow-black/20 transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-1 hover:border-white/20 hover:shadow-2xl hover:shadow-black/35">
+      <div className="media-card relative overflow-hidden rounded-flick-card border border-flick-border bg-flick-surface shadow-flick-card">
         <Link
           to={detailsPath}
           className="block aspect-[2/3] overflow-hidden"
@@ -40,7 +40,7 @@ const MovieCards = ({
               decoding="async"
               width="342"
               height="513"
-              className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.025]"
+              className="poster-image h-full w-full object-cover"
             />
           ) : (
             <span className="flex h-full w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-gray-800 to-gray-950 px-4 text-center text-gray-400">
@@ -59,7 +59,7 @@ const MovieCards = ({
               : handleAddToWatchlist(movie)
           }
           className={
-            "absolute right-2 top-2 flex h-11 w-11 items-center justify-center rounded-xl border shadow-lg backdrop-blur-md transition-[transform,background-color,border-color] duration-200 hover:scale-105 " +
+            "watchlist-toggle absolute right-2 top-2 flex h-11 w-11 items-center justify-center rounded-xl border shadow-lg backdrop-blur-md " +
             (isInWatchlist
               ? "border-red-400/40 bg-red-600 text-white"
               : "border-white/20 bg-black/55 text-white hover:bg-black/75")

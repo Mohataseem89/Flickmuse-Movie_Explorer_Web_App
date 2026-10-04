@@ -281,6 +281,12 @@ export function getMovieGenres(signal) {
   });
 }
 
+export function discoverTonight({ genres, minRuntime, maxRuntime, region }, signal) {
+  return tmdbRequest("/discover/movie", {
+    params: { page: "1", include_adult: "false", include_video: "false", sort_by: "vote_average.desc", with_genres: genres, "with_runtime.gte": String(minRuntime), "with_runtime.lte": String(maxRuntime), "vote_count.gte": "150", region }, signal,
+  });
+}
+
 export function getMovieDetails(id, signal) {
   return tmdbRequest("/movie/" + id, { signal });
 }
