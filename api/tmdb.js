@@ -14,6 +14,7 @@ const ALLOWED_PATHS = [
   /^\/movie\/\d+(?:\/similar)?$/,
   /^\/tv\/(popular|on_the_air|top_rated)$/, 
   /^\/tv\/\d+(?:\/similar)?$/,
+  /^\/tv\/\d+\/season\/\d+$/,
   /^\/person\/\d+(?:\/(?:movie_credits|combined_credits))?$/,
   /^\/collection\/\d+$/,
 ];
@@ -37,6 +38,7 @@ const ALLOWED_QUERY_PARAMETERS = new Set([
   "vote_average.gte",
   "vote_count.gte",
   "with_genres",
+  "with_original_language",
   "with_runtime.gte",
   "with_runtime.lte",
 ]);

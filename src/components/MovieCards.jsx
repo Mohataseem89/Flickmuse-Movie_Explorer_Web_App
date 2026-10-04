@@ -1,7 +1,7 @@
 import { Bookmark, Film, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getImageUrl } from "../api/tmdb";
-import { getMediaPath } from "../utils/mediaUrl";
+import { normalizeMedia, getNormalizedMediaPath } from "../utils/media";
 
 const MovieCards = ({
   movie,
@@ -9,13 +9,14 @@ const MovieCards = ({
   handleRemoveFromWatchlist,
   watchlist,
 }) => {
-  const title = movie.title || movie.name || "Untitled movie";
-  const mediaType = movie.media_type === "tv" ? "tv" : "movie";
+  const media = normalizeMedia(movie, movie.media_type);
+  const title = media.title;
+  const mediaType = media.mediaType;
   const isInWatchlist = watchlist.some((item) => item.id === movie.id && (item.media_type || "movie") === mediaType);
-  const smallPosterUrl = getImageUrl(movie.poster_path, "w185");
-  const posterUrl = getImageUrl(movie.poster_path, "w342");
-  const releaseYear = (movie.release_date || movie.first_air_date)?.slice(0, 4) || "TBA";
-  const detailsPath = getMediaPath(movie, mediaType);
+  const smallPosterUrl = getImageUrl(media.posterPath, "w185");
+  const posterUrl = getImageUrl(media.posterPath, "w342");
+  const releaseYear = media.year || "TBA";
+  const detailsPath = getNormalizedMediaPath(media);
   const prefetchDetails = () => {
     import("./MovieDetails");
   };
@@ -94,7 +95,7 @@ const MovieCards = ({
               className="h-3.5 w-3.5 fill-amber-400 text-amber-400"
               aria-hidden="true"
             />
-            {movie.vote_average?.toFixed(1) || "N/A"}
+            {media.rating ? media.rating.toFixed(1) : "N/A"}
           </span>
         </div>
       </div>

@@ -41,7 +41,7 @@ const SearchBar = ({ compact = false, onNavigate }) => {
       try {
         setLoading(true);
         const data = await searchTitles(normalizedQuery, 1, controller.signal);
-        setSuggestions((data.results || []).filter((result) => result.media_type === "movie" || result.media_type === "tv").slice(0, 6));
+        setSuggestions((data.results || []).filter((result) => ["movie","tv","person"].includes(result.media_type)).slice(0, 7));
       } catch (error) {
         if (error.name !== "AbortError") setSuggestions([]);
       } finally {
@@ -78,7 +78,7 @@ const SearchBar = ({ compact = false, onNavigate }) => {
     setSuggestions([]);
     setActiveIndex(-1);
     setFocused(false);
-    navigate(getMediaPath(movie));
+    navigate(movie.media_type === "person" ? `/person/${movie.id}` : getMediaPath(movie));
     onNavigate?.();
   };
 
@@ -126,7 +126,7 @@ const SearchBar = ({ compact = false, onNavigate }) => {
     >
       <form onSubmit={handleSubmit} role="search">
         <label className="relative block">
-          <span className="sr-only">Search movies and TV shows</span>
+          <span className="sr-only">Search movies, TV shows and people</span>
           <Search
             className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-400"
             aria-hidden="true"
@@ -139,7 +139,7 @@ const SearchBar = ({ compact = false, onNavigate }) => {
             }}
             onKeyDown={handleInputKeyDown}
             type="search"
-            placeholder={compact ? "Search movies and TV" : "Search movies, TV shows and more"}
+            placeholder={compact ? "Search movies, TV and people" : "Search movies, TV shows and people"}
             autoComplete="off"
             className={
               "w-full rounded-xl border border-white/10 bg-white/[0.055] py-2.5 pl-11 text-sm text-white outline-none transition-colors placeholder:text-gray-600 focus:border-red-500/70 focus:bg-[#11151c] " +
@@ -192,7 +192,7 @@ const SearchBar = ({ compact = false, onNavigate }) => {
             <ul aria-label="Movie and TV show suggestions" role="listbox">
               {suggestions.map((movie, index) => {
                 const title = movie.title || movie.name || "Untitled movie";
-                const poster = getImageUrl(movie.poster_path, "w92");
+                const poster = getImageUrl(movie.media_type === "person" ? movie.profile_path : movie.poster_path, "w92");
 
                 return (
                   <li key={movie.id}>
@@ -233,7 +233,7 @@ const SearchBar = ({ compact = false, onNavigate }) => {
                           {title}
                         </span>
                         <span className="mt-1 block text-xs text-gray-400">
-                          {movie.media_type === "tv" ? "TV show · " : "Movie · "}{(movie.release_date || movie.first_air_date)?.slice(0, 4) || "Release TBA"}
+                          {movie.media_type === "person" ? `${movie.known_for_department || "Person"} · Person` : `${movie.media_type === "tv" ? "TV show" : "Movie"} · ${(movie.release_date || movie.first_air_date)?.slice(0, 4) || "Release TBA"}`}
                         </span>
                       </span>
                     </button>
@@ -256,7 +256,7 @@ const SearchBar = ({ compact = false, onNavigate }) => {
             query.trim().length >= 2 &&
             suggestions.length === 0 && (
               <p className="px-3 py-4 text-sm text-gray-400" role="status">
-                No movie or TV show suggestions found.
+                No movie, TV show, or person suggestions found.
               </p>
             )}
 

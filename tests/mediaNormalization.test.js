@@ -1,0 +1,4 @@
+import test from "node:test"; import assert from "node:assert/strict"; import { normalizeMedia, normalizeSearchResult, getNormalizedMediaPath } from "../src/utils/media.js";
+test("normalizes movie presentation fields",()=>{const m=normalizeMedia({id:1,title:"Alien",release_date:"1979-05-25",vote_average:8.2,genre_ids:[27]});assert.equal(m.title,"Alien");assert.equal(m.year,"1979");assert.equal(m.mediaType,"movie")});
+test("normalizes TV presentation fields",()=>{const m=normalizeMedia({id:2,name:"Dark",first_air_date:"2017-12-01",media_type:"tv"});assert.equal(m.title,"Dark");assert.equal(m.year,"2017");assert.equal(getNormalizedMediaPath(m),"/tv/dark/2")});
+test("keeps people separate",()=>{const p=normalizeSearchResult({id:3,name:"Jane Doe",media_type:"person"});assert.equal(p.resultType,"person");assert.equal(p.title,"Jane Doe")});

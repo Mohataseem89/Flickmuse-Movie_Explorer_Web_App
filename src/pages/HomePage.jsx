@@ -1,6 +1,7 @@
 import Banner from "../components/Banner";
 import DiscoveryRows from "../components/DiscoveryRows";
 import Movies from "../components/Movies";
+import DeferredSection from "../components/DeferredSection";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { SITE_NAME, SITE_URL } from "../seo/site";
 import { Link } from "react-router-dom";
@@ -48,9 +49,9 @@ export default function HomePage(props) {
   return (
     <>
       <Banner />
-      <DiscoveryRows {...props} />
+      <DeferredSection fallback={<div className="min-h-[320px] bg-[#0b0e14]" aria-hidden="true" />}><DiscoveryRows {...props} /></DeferredSection>
       <section className="border-b border-white/[0.07] bg-[#0b0e14] py-12 text-white sm:py-16" aria-labelledby="mood-title"><div className="mx-auto max-w-[1600px] px-5 sm:px-8"><p className="text-xs font-bold uppercase tracking-[0.22em] text-red-400">Choose a feeling</p><h2 id="mood-title" className="mt-3 text-3xl font-black tracking-[-0.04em] sm:text-4xl">What are you in the mood for?</h2><div className="mt-7 flex flex-wrap gap-3">{moodLinks.map((mood) => <Link key={mood.label} to={'/discover?genre=' + mood.genre + '&rating=' + mood.rating} className="min-h-11 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-bold text-gray-200 transition hover:border-red-500/40 hover:bg-red-500/10 hover:text-white">{mood.label}</Link>)}</div><div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm font-bold"><Link to="/genre/science-fiction" className="text-red-400 hover:text-red-300">Science-fiction movies →</Link><Link to="/genre/horror" className="text-red-400 hover:text-red-300">Horror movies →</Link><Link to="/top-rated" className="text-red-400 hover:text-red-300">Top-rated movies →</Link><Link to="/compare" className="text-red-400 hover:text-red-300">Compare two movies →</Link></div></div></section>
-      <Movies {...props} />
+      <DeferredSection fallback={<div className="min-h-[420px] bg-[#080a0f]" aria-hidden="true" />}><Movies {...props} /></DeferredSection>
       <section className="border-t border-white/[0.07] bg-[#0b0e14] py-16 text-white sm:py-20" aria-labelledby="about-flickmuse-title">
         <div className="mx-auto max-w-[1600px] px-5 sm:px-8">
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-red-400">About FlickMuse</p>

@@ -209,6 +209,7 @@ export function discoverMovies(filters = {}, signal) {
     year,
     sortBy = "popularity.desc",
     minimumRating,
+    originalLanguage,
   } = filters;
 
   return tmdbRequest("/discover/movie", {
@@ -221,6 +222,7 @@ export function discoverMovies(filters = {}, signal) {
       sort_by: sortBy,
       "vote_average.gte": minimumRating,
       "vote_count.gte": minimumRating ? "100" : undefined,
+      with_original_language: originalLanguage,
     },
     signal,
   });
@@ -298,7 +300,7 @@ export function getSimilarMovies(id, signal) {
 export function getMovieBundle(id, signal) {
   return tmdbRequest("/movie/" + id, {
     params: {
-      append_to_response: "videos,credits,recommendations,similar,watch/providers",
+      append_to_response: "videos,credits,recommendations,similar,watch/providers,images,external_ids,release_dates",
     },
     signal,
     cacheTime: 10 * 60 * 1000,
@@ -319,21 +321,25 @@ export function getTrendingTV(signal) {
 
 export function getTVBundle(id, signal) {
   return tmdbRequest("/tv/" + id, {
-    params: { append_to_response: "videos,credits,recommendations,similar,watch/providers" },
+    params: { append_to_response: "videos,credits,recommendations,similar,watch/providers,images,external_ids,content_ratings" },
     signal,
     cacheTime: 10 * 60 * 1000,
   });
 }
 
 export function discoverTV(filters = {}, signal) {
-  const { page = 1, genre, year, sortBy = "popularity.desc", minimumRating } = filters;
+  const { page = 1, genre, year, sortBy = "popularity.desc", minimumRating, originalLanguage } = filters;
   return tmdbRequest("/discover/tv", {
     params: {
       page: String(page), with_genres: genre, first_air_date_year: year,
       sort_by: sortBy, "vote_average.gte": minimumRating,
-      "vote_count.gte": minimumRating ? "100" : undefined,
+      "vote_count.gte": minimumRating ? "100" : undefined, with_original_language: originalLanguage,
     }, signal,
   });
+}
+
+export function getTVSeason(id, seasonNumber, signal) {
+  return tmdbRequest(`/tv/${id}/season/${seasonNumber}`, { signal, cacheTime: 30 * 60 * 1000 });
 }
 
 export function getPersonDetails(id, signal) {

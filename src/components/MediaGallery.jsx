@@ -1,0 +1,8 @@
+import { useEffect, useState } from "react";
+import { getImageUrl } from "../api/tmdb";
+export default function MediaGallery({ images }) {
+ const items=[...(images?.backdrops||[]).slice(0,6).map(x=>({...x,kind:"Backdrop"})),...(images?.posters||[]).slice(0,6).map(x=>({...x,kind:"Poster"}))]; const [active,setActive]=useState(null);
+ useEffect(()=>{if(!active)return; const fn=e=>{if(e.key==="Escape")setActive(null)};document.addEventListener("keydown",fn);return()=>document.removeEventListener("keydown",fn)},[active]);
+ if(!items.length)return null;
+ return <section className="mt-10 border-t border-white/10 pt-9" aria-labelledby="gallery-title"><h2 id="gallery-title" className="text-2xl font-black">Media gallery</h2><div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">{items.slice(0,8).map((img,i)=><button key={`${img.file_path}-${i}`} onClick={()=>setActive(img)} className="overflow-hidden rounded-2xl border border-white/10 bg-[#11151c] text-left"><img src={getImageUrl(img.file_path,img.kind==="Poster"?"w342":"w500")} alt={`${img.kind} ${i+1}`} loading="lazy" decoding="async" className="aspect-video h-full w-full object-cover"/></button>)}</div>{active&&<div role="dialog" aria-modal="true" aria-label="Image viewer" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-5" onClick={()=>setActive(null)}><button autoFocus className="absolute right-5 top-5 min-h-11 rounded-xl bg-white px-4 font-bold text-black" onClick={()=>setActive(null)}>Close</button><img onClick={e=>e.stopPropagation()} src={getImageUrl(active.file_path,"w1280")} alt={active.kind} className="max-h-[85vh] max-w-full object-contain"/></div>}</section>;
+}

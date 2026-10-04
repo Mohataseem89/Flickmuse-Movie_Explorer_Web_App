@@ -18,6 +18,8 @@ import { getMediaPath, slugifyTitle } from "../utils/mediaUrl";
 import { getInitialRegion, getRegionName, saveRegion, WATCH_REGIONS } from "../utils/region";
 import MovieCards from "./MovieCards";
 import TrailerModal from "./TrailerModal";
+import SeasonExplorer from "./SeasonExplorer";
+import MediaGallery from "./MediaGallery";
 
 const DetailSkeleton = () => (
   <div className="min-h-screen animate-pulse bg-[#080a0f]">
@@ -72,6 +74,16 @@ function MovieRow({
       </div>
     </section>
   );
+}
+
+function getCertification(movie, mediaType, region) {
+  if (mediaType === "tv") {
+    const ratings = movie?.content_ratings?.results || [];
+    return ratings.find((item) => item.iso_3166_1 === region)?.rating || ratings.find((item) => item.iso_3166_1 === "US")?.rating || ratings.find((item) => item.rating)?.rating || "";
+  }
+  const releases = movie?.release_dates?.results || [];
+  const country = releases.find((item) => item.iso_3166_1 === region) || releases.find((item) => item.iso_3166_1 === "US") || releases[0];
+  return country?.release_dates?.find((item) => item.certification)?.certification || "";
 }
 
 export default function MovieDetails({
@@ -410,9 +422,13 @@ export default function MovieDetails({
                 {[["Status",movie.status],["Seasons",movie.number_of_seasons],["Episodes",movie.number_of_episodes],["Last air date",movie.last_air_date],["Origin",movie.origin_country?.join(", ")],["Creators",movie.created_by?.map(x=>x.name).join(", ")],["Networks",movie.networks?.map(x=>x.name).join(", ")]].filter(([,v])=>v).map(([label,value])=><div key={label} className="rounded-2xl border border-white/10 bg-[#11151c] p-4"><dt className="text-xs font-bold uppercase tracking-wider text-gray-400">{label}</dt><dd className="mt-2 font-bold">{value}</dd></div>)}
               </dl>
               {(movie.last_episode_to_air || movie.next_episode_to_air) && <div className="mt-6 grid gap-4 lg:grid-cols-2">{[["Last episode",movie.last_episode_to_air],["Next episode",movie.next_episode_to_air]].filter(([,e])=>e).map(([label,e])=><article key={label} className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"><p className="text-xs font-bold uppercase tracking-wider text-red-400">{label}</p><h3 className="mt-2 text-xl font-black">S{String(e.season_number).padStart(2,"0")} E{String(e.episode_number).padStart(2,"0")} · {e.name}</h3><p className="mt-2 text-sm text-gray-400">{[e.air_date,e.runtime?`${e.runtime} min`:null].filter(Boolean).join(" · ")}</p>{e.overview&&<p className="mt-3 line-clamp-3 text-sm leading-6 text-gray-300">{e.overview}</p>}</article>)}</div>}
-              {movie.seasons?.length > 0 && <div className="mt-8"><h3 className="text-xl font-black">Seasons</h3><div className="movie-row mt-4 flex gap-4 overflow-x-auto pb-4">{movie.seasons.map(season=><article key={season.id} className="w-44 shrink-0 rounded-2xl border border-white/10 bg-[#11151c] p-3">{season.poster_path&&<img src={getImageUrl(season.poster_path,"w185")} alt={`${season.name} poster`} loading="lazy" width="185" height="278" className="aspect-[2/3] w-full rounded-xl object-cover"/>}<h4 className="mt-3 font-bold">{season.season_number===0?"Specials":season.name}</h4><p className="mt-1 text-xs text-gray-400">{season.episode_count} episodes{season.air_date?` · ${season.air_date.slice(0,4)}`:""}</p></article>)}</div></div>}
+              {movie.seasons?.length > 0 && <SeasonExplorer tvId={movie.id} seasons={movie.seasons} />}
             </section>
           )}
+
+          <section className="mt-10 border-t border-white/10 pt-9" aria-labelledby="more-details-title"><h2 id="more-details-title" className="text-2xl font-black">More details</h2><dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{[["Original title",mediaType==="tv"?movie.original_name:movie.original_title],["Certification",getCertification(movie,mediaType,watchRegion)],["Status",movie.status],["Production countries",movie.production_countries?.map(x=>x.name).join(", ")],["Production companies",movie.production_companies?.slice(0,4).map(x=>x.name).join(", ")],["Official website",movie.homepage?"Available":null],["IMDb",movie.external_ids?.imdb_id?"Available":null]].filter(([,v])=>v).map(([label,value])=><div key={label} className="rounded-2xl border border-white/10 bg-[#11151c] p-4"><dt className="text-xs font-bold uppercase tracking-wider text-gray-400">{label}</dt><dd className="mt-2 font-bold">{label==="Official website"?<a href={movie.homepage} target="_blank" rel="noopener noreferrer" className="text-red-400">Visit official site</a>:label==="IMDb"?<a href={`https://www.imdb.com/title/${movie.external_ids.imdb_id}/`} target="_blank" rel="noopener noreferrer" className="text-red-400">View on IMDb</a>:value}</dd></div>)}</dl></section>
+
+          <MediaGallery images={movie.images} />
 
           {mediaType !== "tv" && movie.belongs_to_collection && (
             <section className="mt-10 rounded-3xl border border-white/10 bg-[#11151c] p-6" aria-labelledby="collection-title">

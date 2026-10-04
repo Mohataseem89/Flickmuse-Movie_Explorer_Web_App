@@ -8,6 +8,7 @@ import FilterChipGroup from "../components/FilterChipGroup";
 import ResultsAnnouncer from "../components/ResultsAnnouncer";
 import { usePageMetadata } from "../hooks/usePageMetadata";
 import { useGenres } from "../hooks/useGenres";
+import { DISCOVERY_LANGUAGES } from "../utils/languages";
 
 const sortOptions = [
   { value: "popularity.desc", label: "Most popular" },
@@ -43,6 +44,7 @@ export default function DiscoverPage({
       year: searchParams.get("year") || "",
       sortBy: searchParams.get("sort") || "popularity.desc",
       minimumRating: searchParams.get("rating") || "",
+      originalLanguage: searchParams.get("language") || "",
       page: Number(searchParams.get("page")) || 1,
       moviePage: Number(searchParams.get("moviePage")) || 1,
       tvPage: Number(searchParams.get("tvPage")) || 1,
@@ -164,6 +166,7 @@ export default function DiscoverPage({
                 className="mt-2 min-h-11 w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 text-sm font-bold normal-case tracking-normal text-gray-100 outline-none transition-colors placeholder:text-gray-400 hover:border-white/20 focus:border-red-500 focus:ring-2 focus:ring-red-500/30"
               />
             </label>
+            <FilterChipGroup label="Original language" value={filters.originalLanguage} options={DISCOVERY_LANGUAGES.map(([value,label])=>({value,label}))} onChange={(value) => updateFilter("language", value)} />
             <FilterChipGroup label="Minimum rating" value={filters.minimumRating} options={ratingOptions} onChange={(value) => updateFilter("rating", value)} />
             <FilterChipGroup label="Sort by" value={filters.sortBy} options={availableSortOptions} onChange={(value) => updateFilter("sort", value)} />
             <button
