@@ -31,10 +31,13 @@ const ALLOWED_QUERY_PARAMETERS = new Set([
   "primary_release_date.lte",
   "primary_release_year",
   "query",
+  "region",
   "sort_by",
   "vote_average.gte",
   "vote_count.gte",
   "with_genres",
+  "with_runtime.gte",
+  "with_runtime.lte",
 ]);
 
 const MAX_QUERY_VALUE_LENGTH = 200;
