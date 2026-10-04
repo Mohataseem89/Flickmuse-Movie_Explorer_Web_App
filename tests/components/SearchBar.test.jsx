@@ -14,9 +14,14 @@ describe("SearchBar", () => {
       </MemoryRouter>
     );
 
-    fireEvent.change(screen.getByRole("combobox", { name: /search movies and tv shows/i }), {
-      target: { value: "The Bear" },
-    });
+    fireEvent.change(
+      screen.getByRole("combobox", {
+        name: /search movies, tv shows and people/i,
+      }),
+      {
+        target: { value: "The Bear" },
+      }
+    );
     fireEvent.submit(screen.getByRole("search"));
 
     expect(screen.getByText("/search?q=The%20Bear")).toBeInTheDocument();
