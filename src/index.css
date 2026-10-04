@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+@theme {
+  --color-flick-bg: #080a0f;
+  --color-flick-elevated: #0d1118;
+  --color-flick-surface: #11151c;
+  --color-flick-text: #f5f7fa;
+  --color-flick-muted: #9ca3af;
+  --color-flick-accent: #dc2626;
+  --color-flick-border: rgba(255, 255, 255, 0.10);
+  --radius-flick-card: 1rem;
+  --shadow-flick-card: 0 12px 32px rgba(0, 0, 0, 0.24);
+}
+
 :root {
   color-scheme: dark;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
@@ -111,4 +123,20 @@ button:disabled {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* FlickMuse motion system: transform/opacity only, progressively enhanced. */
+.media-card { transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease; }
+.poster-image { opacity: 0; animation: poster-reveal 300ms ease forwards; transition: transform 180ms ease; }
+.watchlist-toggle { transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease; }
+.watchlist-toggle:active { transform: scale(.88); }
+.trailer-backdrop { animation: trailer-backdrop-in 220ms ease both; }
+.trailer-panel { animation: trailer-panel-in 220ms ease both; }
+@keyframes poster-reveal { to { opacity: 1; } }
+@keyframes trailer-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes trailer-panel-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@media (hover: hover) and (pointer: fine) {
+  .media-card:hover { transform: translateY(-4px) scale(1.02); border-color: rgba(255,255,255,.2); box-shadow: 0 20px 45px rgba(0,0,0,.36); }
+  .media-card:hover .poster-image { transform: scale(1.02); }
+  .watchlist-toggle:hover { transform: scale(1.05); }
 }

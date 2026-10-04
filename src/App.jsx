@@ -16,6 +16,8 @@ const PersonDetails = lazy(() => import("./pages/PersonDetails"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const MovieDetails = lazy(() => import("./components/MovieDetails"));
 const WatchList = lazy(() => import("./components/WatchList"));
+const TonightPage = lazy(() => import("./pages/TonightPage"));
+const SharedListPage = lazy(() => import("./pages/SharedListPage"));
 
 function App() {
   const { watchlist, addToWatchlist, removeFromWatchlist } = useWatchlist();
@@ -63,6 +65,8 @@ function App() {
             <Routes>
               <Route path="/" element={<HomePage {...discoveryProps} />} />
               <Route path="/discover" element={<DiscoverPage {...discoveryProps} />} />
+              <Route path="/discover/tonight" element={<TonightPage />} />
+              <Route path="/list" element={<SharedListPage {...discoveryProps} />} />
               <Route path="/tv" element={<TVShowsPage {...discoveryProps} />} />
               <Route path="/search" element={<SearchPage {...discoveryProps} />} />
               <Route
