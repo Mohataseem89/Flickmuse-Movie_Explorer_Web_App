@@ -27,7 +27,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['api/**/*.js', 'vite.config.js', 'tests/**/*.js'],
+    files: ['api/**/*.js', 'vite.config.js', 'playwright.config.js', 'lighthouserc.cjs', 'scripts/**/*.mjs', 'tests/**/*.js'],
     languageOptions: {
       globals: globals.node,
     },
