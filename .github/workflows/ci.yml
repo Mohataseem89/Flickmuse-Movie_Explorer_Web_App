@@ -33,7 +33,7 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          API_KEY: ci-placeholder-key
+          TMDB_API_KEY: ci-placeholder-key
       - name: Upload production build
         uses: actions/upload-artifact@v4
         with:
