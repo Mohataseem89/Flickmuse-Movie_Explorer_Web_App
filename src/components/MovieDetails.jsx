@@ -78,6 +78,7 @@ export default function MovieDetails({
   watchlist,
   handleAddToWatchlist,
   handleRemoveFromWatchlist,
+  changeViewingState,
   mediaType = "movie",
 }) {
   const { id, slug } = useParams();
@@ -222,7 +223,9 @@ export default function MovieDetails({
     );
   }
 
-  const isInWatchlist = watchlist.some((item) => item.id === movie.id);
+  const normalizedMovie = { ...movie, media_type: mediaType === "tv" ? "tv" : "movie" };
+  const libraryItem = watchlist.find((item) => item.id === movie.id && (item.media_type === "tv" ? "tv" : "movie") === normalizedMovie.media_type);
+  const isInWatchlist = Boolean(libraryItem);
   const smallBackdropUrl = getImageUrl(movie.backdrop_path, "w780");
   const backdropUrl = getImageUrl(movie.backdrop_path, "w1280");
   const posterUrl = getImageUrl(movie.poster_path, "w500");
@@ -269,7 +272,7 @@ export default function MovieDetails({
 
           <div className="mt-auto max-w-4xl pb-16 pt-20">
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-red-400 sm:text-sm">
-              Movie details
+              {mediaType === "tv" ? "TV show details" : "Movie details"}
             </p>
             <h1 className="mt-4 text-[clamp(2.5rem,7vw,5.5rem)] font-black leading-[0.98] tracking-[-0.055em] [text-shadow:0_3px_22px_rgba(0,0,0,0.8)]">
               {title}
@@ -288,10 +291,10 @@ export default function MovieDetails({
                 <CalendarDays className="h-[18px] w-[18px]" aria-hidden="true" />
                 {releaseYear}
               </span>
-              {movie.runtime > 0 && (
+              {(movie.runtime > 0 || (mediaType === "tv" && movie.episode_run_time?.[0] > 0)) && (
                 <span className="flex items-center gap-2">
                   <Clock3 className="h-[18px] w-[18px]" aria-hidden="true" />
-                  {movie.runtime} min
+                  {movie.runtime || movie.episode_run_time?.[0]} min
                 </span>
               )}
             </div>
@@ -310,8 +313,8 @@ export default function MovieDetails({
                 type="button"
                 onClick={() =>
                   isInWatchlist
-                    ? handleRemoveFromWatchlist(movie)
-                    : handleAddToWatchlist(movie)
+                    ? handleRemoveFromWatchlist(normalizedMovie)
+                    : handleAddToWatchlist(normalizedMovie)
                 }
                 className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-white/15 bg-black/30 px-5 font-bold backdrop-blur-md transition-colors hover:bg-white/15"
               >
@@ -322,6 +325,8 @@ export default function MovieDetails({
                 )}
                 {isInWatchlist ? "In watchlist" : "Add to watchlist"}
               </button>
+              {isInWatchlist && changeViewingState && <label className="sr-only" htmlFor="detail-viewing-state">Viewing state for {title}</label>}
+              {isInWatchlist && changeViewingState && <select id="detail-viewing-state" value={libraryItem.viewing_state || "want-to-watch"} onChange={(event)=>changeViewingState(normalizedMovie,event.target.value)} className="min-h-12 rounded-xl border border-white/15 bg-black/50 px-4 font-bold text-white backdrop-blur-md"><option value="want-to-watch">Want to Watch</option><option value="watching">Watching</option><option value="watched">Watched</option></select>}
             </div>
           </div>
         </div>
@@ -354,7 +359,7 @@ export default function MovieDetails({
               Overview
             </h2>
             <p className="mt-4 max-w-4xl text-base leading-8 text-gray-300 sm:text-lg">
-              {movie.overview || "No overview is available for this movie."}
+              {movie.overview || "No overview is available for this title."}
             </p>
           </section>
 
@@ -389,14 +394,32 @@ export default function MovieDetails({
               <dd className="mt-2 font-bold">{movie.original_language?.toUpperCase() || "N/A"}</dd>
             </div>
             <div className="rounded-2xl border border-white/10 bg-[#11151c] p-5">
-              <dt className="text-xs font-bold uppercase tracking-wider text-gray-400">Release date</dt>
-              <dd className="mt-2 font-bold">{movie.release_date || "Not available"}</dd>
+              <dt className="text-xs font-bold uppercase tracking-wider text-gray-400">{mediaType === "tv" ? "First air date" : "Release date"}</dt>
+              <dd className="mt-2 font-bold">{movie.release_date || movie.first_air_date || "Not available"}</dd>
             </div>
             <div className="rounded-2xl border border-white/10 bg-[#11151c] p-5">
               <dt className="text-xs font-bold uppercase tracking-wider text-gray-400">Audience votes</dt>
               <dd className="mt-2 font-bold">{movie.vote_count?.toLocaleString() || "Not available"}</dd>
             </div>
           </dl>
+
+          {mediaType === "tv" && (
+            <section className="mt-10 border-t border-white/10 pt-9" aria-labelledby="tv-summary-title">
+              <h2 id="tv-summary-title" className="text-2xl font-black">TV show summary</h2>
+              <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {[["Status",movie.status],["Seasons",movie.number_of_seasons],["Episodes",movie.number_of_episodes],["Last air date",movie.last_air_date],["Origin",movie.origin_country?.join(", ")],["Creators",movie.created_by?.map(x=>x.name).join(", ")],["Networks",movie.networks?.map(x=>x.name).join(", ")]].filter(([,v])=>v).map(([label,value])=><div key={label} className="rounded-2xl border border-white/10 bg-[#11151c] p-4"><dt className="text-xs font-bold uppercase tracking-wider text-gray-400">{label}</dt><dd className="mt-2 font-bold">{value}</dd></div>)}
+              </dl>
+              {(movie.last_episode_to_air || movie.next_episode_to_air) && <div className="mt-6 grid gap-4 lg:grid-cols-2">{[["Last episode",movie.last_episode_to_air],["Next episode",movie.next_episode_to_air]].filter(([,e])=>e).map(([label,e])=><article key={label} className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"><p className="text-xs font-bold uppercase tracking-wider text-red-400">{label}</p><h3 className="mt-2 text-xl font-black">S{String(e.season_number).padStart(2,"0")} E{String(e.episode_number).padStart(2,"0")} · {e.name}</h3><p className="mt-2 text-sm text-gray-400">{[e.air_date,e.runtime?`${e.runtime} min`:null].filter(Boolean).join(" · ")}</p>{e.overview&&<p className="mt-3 line-clamp-3 text-sm leading-6 text-gray-300">{e.overview}</p>}</article>)}</div>}
+              {movie.seasons?.length > 0 && <div className="mt-8"><h3 className="text-xl font-black">Seasons</h3><div className="movie-row mt-4 flex gap-4 overflow-x-auto pb-4">{movie.seasons.map(season=><article key={season.id} className="w-44 shrink-0 rounded-2xl border border-white/10 bg-[#11151c] p-3">{season.poster_path&&<img src={getImageUrl(season.poster_path,"w185")} alt={`${season.name} poster`} loading="lazy" width="185" height="278" className="aspect-[2/3] w-full rounded-xl object-cover"/>}<h4 className="mt-3 font-bold">{season.season_number===0?"Specials":season.name}</h4><p className="mt-1 text-xs text-gray-400">{season.episode_count} episodes{season.air_date?` · ${season.air_date.slice(0,4)}`:""}</p></article>)}</div></div>}
+            </section>
+          )}
+
+          {mediaType !== "tv" && movie.belongs_to_collection && (
+            <section className="mt-10 rounded-3xl border border-white/10 bg-[#11151c] p-6" aria-labelledby="collection-title">
+              <p className="text-xs font-bold uppercase tracking-[.18em] text-red-400">Franchise</p><h2 id="collection-title" className="mt-2 text-2xl font-black">Part of the {movie.belongs_to_collection.name}</h2>
+              <Link to={`/collection/${movie.belongs_to_collection.id}`} className="mt-5 inline-flex min-h-11 items-center rounded-xl bg-red-600 px-5 font-bold hover:bg-red-500">View collection</Link>
+            </section>
+          )}
         </div>
       </div>
 

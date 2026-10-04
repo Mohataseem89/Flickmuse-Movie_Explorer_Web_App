@@ -21,9 +21,10 @@ const SharedListPage = lazy(() => import("./pages/SharedListPage"));
 const GenrePage = lazy(() => import("./pages/GenrePage"));
 const TopRatedPage = lazy(() => import("./pages/TopRatedPage"));
 const ComparePage = lazy(() => import("./pages/ComparePage"));
+const CollectionPage = lazy(() => import("./pages/CollectionPage"));
 
 function App() {
-  const { watchlist, addToWatchlist, removeFromWatchlist } = useWatchlist();
+  const { watchlist, addToWatchlist, removeFromWatchlist, changeViewingState } = useWatchlist();
   const [toast, setToast] = useState(null);
 
   const showToast = (message, tone = "success") => {
@@ -48,6 +49,7 @@ function App() {
     watchlist,
     handleAddToWatchlist,
     handleRemoveFromWatchlist,
+    changeViewingState,
   };
 
   return (
@@ -78,10 +80,7 @@ function App() {
               <Route
                 path="/watchlist"
                 element={
-                  <WatchList
-                    watchlist={watchlist}
-                    handleRemoveFromWatchlist={handleRemoveFromWatchlist}
-                  />
+                  <WatchList watchlist={watchlist} handleRemoveFromWatchlist={handleRemoveFromWatchlist} changeViewingState={changeViewingState} />
                 }
               />
               <Route path="/movie/:slug/:id" element={<MovieDetails {...discoveryProps} />} />
@@ -89,6 +88,8 @@ function App() {
               <Route path="/tv/:slug/:id" element={<MovieDetails {...discoveryProps} mediaType="tv" />} />
               <Route path="/tv/:id" element={<MovieDetails {...discoveryProps} mediaType="tv" />} />
               <Route path="/person/:id" element={<PersonDetails {...discoveryProps} />} />
+              <Route path="/collection/:slug/:id" element={<CollectionPage {...discoveryProps} />} />
+              <Route path="/collection/:id" element={<CollectionPage {...discoveryProps} />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </RouteTransition>

@@ -344,10 +344,15 @@ export function getPersonDetails(id, signal) {
 }
 
 export function getPersonMovieCredits(id, signal) {
-  return tmdbRequest("/person/" + id + "/movie_credits", {
-    signal,
-    cacheTime: 30 * 60 * 1000,
-  });
+  return getPersonCombinedCredits(id, signal);
+}
+
+export function getPersonCombinedCredits(id, signal) {
+  return tmdbRequest("/person/" + id + "/combined_credits", { signal, cacheTime: 30 * 60 * 1000 });
+}
+
+export function getCollectionDetails(id, signal) {
+  return tmdbRequest("/collection/" + id, { signal, cacheTime: 30 * 60 * 1000 });
 }
 
 export function getImageUrl(path, size = "w500") {

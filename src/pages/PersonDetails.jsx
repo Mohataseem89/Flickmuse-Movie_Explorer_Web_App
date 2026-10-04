@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   getImageUrl,
   getPersonDetails,
-  getPersonMovieCredits,
+  getPersonCombinedCredits,
 } from "../api/tmdb";
 import MovieCards from "../components/MovieCards";
 import { usePageMetadata } from "../hooks/usePageMetadata";
@@ -52,11 +52,11 @@ export default function PersonDetails({
 
     Promise.all([
       getPersonDetails(id, controller.signal),
-      getPersonMovieCredits(id, controller.signal),
+      getPersonCombinedCredits(id, controller.signal),
     ])
       .then(([personData, creditData]) => {
         setPerson(personData);
-        setCredits(creditData.cast || []);
+        setCredits([...(creditData.cast || []), ...(creditData.crew || [])].map((credit) => ({ ...credit, media_type: credit.media_type === "tv" ? "tv" : "movie" })));
       })
       .catch((requestError) => {
         if (requestError.name !== "AbortError") setError(requestError.message);
@@ -82,7 +82,7 @@ export default function PersonDetails({
     () =>
       [...credits]
         .filter((movie) => movie.poster_path)
-        .sort((a, b) => (b.release_date || "").localeCompare(a.release_date || ""))
+        .sort((a, b) => (b.release_date || b.first_air_date || "").localeCompare(a.release_date || a.first_air_date || ""))
         .slice(0, 30),
     [credits]
   );
@@ -197,7 +197,7 @@ export default function PersonDetails({
                 </div>
               ))}
             </div>
-          ) : <p className="mt-5 text-gray-400">No movie credits are available.</p>}
+          ) : <p className="mt-5 text-gray-400">No movie or TV credits are available.</p>}
         </section>
 
         <section className="mt-14 border-t border-white/10 pt-14" aria-labelledby="filmography-title">
@@ -205,9 +205,9 @@ export default function PersonDetails({
           <h2 id="filmography-title" className="mt-3 text-3xl font-black tracking-[-0.04em] sm:text-4xl">Filmography</h2>
           <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
             {filmography.map((movie) => (
-              <Link key={movie.credit_id || movie.id} to={getMediaPath(movie, "movie")} className="group rounded-2xl border border-white/10 bg-white/[0.03] p-2 transition hover:-translate-y-1 hover:border-white/25 hover:bg-white/[0.07] focus:outline-none focus:ring-2 focus:ring-red-500">
-                <img src={getImageUrl(movie.poster_path, 'w342')} alt={'View ' + movie.title} loading="lazy" decoding="async" width="342" height="513" className="aspect-[2/3] w-full rounded-xl object-cover" />
-                <p className="mt-3 truncate font-bold text-white">{movie.title}</p>
+              <Link key={movie.credit_id || movie.id} to={getMediaPath(movie, movie.media_type || "movie")} className="group rounded-2xl border border-white/10 bg-white/[0.03] p-2 transition hover:-translate-y-1 hover:border-white/25 hover:bg-white/[0.07] focus:outline-none focus:ring-2 focus:ring-red-500">
+                <img src={getImageUrl(movie.poster_path, 'w342')} alt={(movie.title || movie.name || 'Title') + ' poster'} loading="lazy" decoding="async" width="342" height="513" className="aspect-[2/3] w-full rounded-xl object-cover" />
+                <p className="mt-3 truncate font-bold text-white">{movie.title || movie.name}</p>
                 <p className="mt-1 truncate text-xs text-gray-400">{movie.character || movie.release_date?.slice(0, 4) || 'Movie credit'}</p>
                 {movie.vote_average > 0 && <p className="mt-2 flex items-center gap-1 text-xs font-bold text-amber-300"><Star className="h-3.5 w-3.5 fill-current" aria-hidden="true" />{movie.vote_average.toFixed(1)}</p>}
               </Link>

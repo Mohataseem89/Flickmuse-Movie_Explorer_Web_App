@@ -1,7 +1,7 @@
 import { RotateCcw, SlidersHorizontal } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { discoverTitles } from "../api/tmdb";
+import { discoverMovies, discoverTV, discoverTitles } from "../api/tmdb";
 import MovieResultsGrid from "../components/MovieResultsGrid";
 import Pagination from "../components/Pagination";
 import FilterChipGroup from "../components/FilterChipGroup";
@@ -34,6 +34,7 @@ export default function DiscoverPage({
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [both, setBoth] = useState({ movies: [], tv: [], moviePages: 1, tvPages: 1, movieTotal: 0, tvTotal: 0, movieError: "", tvError: "" });
 
   const filters = useMemo(
     () => ({
@@ -43,6 +44,8 @@ export default function DiscoverPage({
       sortBy: searchParams.get("sort") || "popularity.desc",
       minimumRating: searchParams.get("rating") || "",
       page: Number(searchParams.get("page")) || 1,
+      moviePage: Number(searchParams.get("moviePage")) || 1,
+      tvPage: Number(searchParams.get("tvPage")) || 1,
     }),
     [searchParams]
   );
@@ -59,22 +62,31 @@ export default function DiscoverPage({
 
   useEffect(() => {
     const controller = new AbortController();
-    setLoading(true);
-    setError("");
-
-    discoverTitles(filters, controller.signal)
-      .then((data) => {
-        setMovies(data.results || []);
-        setTotalResults(data.total_results || 0);
-        setTotalPages(Math.min(data.total_pages || 1, 500));
-      })
-      .catch((requestError) => {
-        if (requestError.name !== "AbortError") setError(requestError.message);
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setLoading(false);
-      });
-
+    setLoading(true); setError("");
+    if (filters.mediaType === "both") {
+      const base = { ...filters }; delete base.page; delete base.moviePage; delete base.tvPage;
+      Promise.allSettled([
+        discoverMovies({ ...base, page: filters.moviePage }, controller.signal),
+        discoverTV({ ...base, page: filters.tvPage, sortBy: filters.sortBy === "primary_release_date.desc" ? "first_air_date.desc" : filters.sortBy }, controller.signal),
+      ]).then(([movieResult, tvResult]) => {
+        if (controller.signal.aborted) return;
+        const movieData = movieResult.status === "fulfilled" ? movieResult.value : {};
+        const tvData = tvResult.status === "fulfilled" ? tvResult.value : {};
+        setBoth({
+          movies: (movieData.results || []).map((item) => ({ ...item, media_type: "movie" })),
+          tv: (tvData.results || []).map((item) => ({ ...item, media_type: "tv" })),
+          moviePages: Math.min(movieData.total_pages || 1, 500), tvPages: Math.min(tvData.total_pages || 1, 500),
+          movieTotal: movieData.total_results || 0, tvTotal: tvData.total_results || 0,
+          movieError: movieResult.status === "rejected" ? movieResult.reason?.message || "Movies could not be loaded." : "",
+          tvError: tvResult.status === "rejected" ? tvResult.reason?.message || "TV shows could not be loaded." : "",
+        });
+      }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    } else {
+      discoverTitles(filters, controller.signal).then((data) => {
+        setMovies(data.results || []); setTotalResults(data.total_results || 0); setTotalPages(Math.min(data.total_pages || 1, 500));
+      }).catch((requestError) => { if (requestError.name !== "AbortError") setError(requestError.message); })
+        .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    }
     return () => controller.abort();
   }, [filters]);
 
@@ -85,7 +97,7 @@ export default function DiscoverPage({
     if (key === "type" && value !== "movie" && filters.sortBy === "revenue.desc") {
       next.set("sort", "popularity.desc");
     }
-    next.delete("page");
+    next.delete("page"); next.delete("moviePage"); next.delete("tvPage");
     setSearchParams(next);
   };
 
@@ -95,6 +107,13 @@ export default function DiscoverPage({
     else next.delete("page");
     setSearchParams(next);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const updateBothPage = (kind, page) => {
+    const next = new URLSearchParams(searchParams);
+    const key = kind === "movie" ? "moviePage" : "tvPage";
+    if (page > 1) next.set(key, String(page)); else next.delete(key);
+    setSearchParams(next);
   };
 
   const clearFilters = () => setSearchParams({});
@@ -158,52 +177,22 @@ export default function DiscoverPage({
           </div>
         </div>
 
-        <div className="mt-10 flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">
-              Results
-            </p>
-            <h2 className="mt-2 text-2xl font-black">
-              {loading ? "Finding titles…" : totalResults.toLocaleString() + " matches"}
-            </h2>
+        {filters.mediaType === "both" ? (
+          <div className="mt-10 space-y-14">
+            {[{key:"movie", title:"Movies", items:both.movies, page:filters.moviePage, pages:both.moviePages, total:both.movieTotal, error:both.movieError},{key:"tv", title:"TV Shows", items:both.tv, page:filters.tvPage, pages:both.tvPages, total:both.tvTotal, error:both.tvError}].map((section) => (
+              <section key={section.key} aria-labelledby={`discover-${section.key}`}>
+                <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">{section.total.toLocaleString()} matches</p><h2 id={`discover-${section.key}`} className="mt-2 text-3xl font-black">{section.title}</h2></div><p className="text-sm text-gray-400">Page {section.page} of {section.pages}</p></div>
+                {section.error ? <div role="alert" className="mt-6 rounded-2xl border border-red-500/20 bg-red-500/10 p-5 text-red-200">{section.error}</div> : <MovieResultsGrid movies={section.items} loading={loading} emptyMessage={`No ${section.title.toLowerCase()} match these filters.`} watchlist={watchlist} handleAddToWatchlist={handleAddToWatchlist} handleRemoveFromWatchlist={handleRemoveFromWatchlist}/>}
+                {!section.error && section.items.length > 0 && <Pagination currentPage={section.page} pageNo={section.page} loading={loading} hasNextPage={section.page < section.pages} handlePreviousPage={() => updateBothPage(section.key, Math.max(1, section.page - 1))} handleNextPage={() => updateBothPage(section.key, Math.min(section.pages, section.page + 1))}/>}
+              </section>
+            ))}
           </div>
-          <p className="text-sm text-gray-400">
-            Page {filters.page} of {totalPages}
-          </p>
-        </div>
-
-        <ResultsAnnouncer
-          loading={loading}
-          page={filters.page}
-          count={totalResults}
-          label={contentLabel + " discovery results"}
-        />
-
-        {error ? (
-          <div role="alert" className="mt-8 rounded-2xl border border-red-500/20 bg-red-500/10 p-5 text-red-200">
-            {error}
-          </div>
-        ) : (
-          <MovieResultsGrid
-            movies={movies}
-            loading={loading}
-            emptyMessage={"No " + contentLabel + " match this filter combination. Try widening your choices."}
-            watchlist={watchlist}
-            handleAddToWatchlist={handleAddToWatchlist}
-            handleRemoveFromWatchlist={handleRemoveFromWatchlist}
-          />
-        )}
-
-        {!error && movies.length > 0 && (
-          <Pagination
-            currentPage={filters.page}
-            pageNo={filters.page}
-            loading={loading}
-            hasNextPage={filters.page < totalPages}
-            handlePreviousPage={() => updatePage(Math.max(1, filters.page - 1))}
-            handleNextPage={() => updatePage(Math.min(totalPages, filters.page + 1))}
-          />
-        )}
+        ) : (<>
+          <div className="mt-10 flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-gray-400">Results</p><h2 className="mt-2 text-2xl font-black">{loading ? "Finding titles…" : totalResults.toLocaleString() + " matches"}</h2></div><p className="text-sm text-gray-400">Page {filters.page} of {totalPages}</p></div>
+          <ResultsAnnouncer loading={loading} page={filters.page} count={totalResults} label={contentLabel + " discovery results"}/>
+          {error ? <div role="alert" className="mt-8 rounded-2xl border border-red-500/20 bg-red-500/10 p-5 text-red-200">{error}</div> : <MovieResultsGrid movies={movies} loading={loading} emptyMessage={`No ${contentLabel} match this filter combination. Try widening your choices.`} watchlist={watchlist} handleAddToWatchlist={handleAddToWatchlist} handleRemoveFromWatchlist={handleRemoveFromWatchlist}/>}
+          {!error && movies.length > 0 && <Pagination currentPage={filters.page} pageNo={filters.page} loading={loading} hasNextPage={filters.page < totalPages} handlePreviousPage={() => updatePage(Math.max(1, filters.page - 1))} handleNextPage={() => updatePage(Math.min(totalPages, filters.page + 1))}/>}
+        </>)}
       </div>
     </section>
   );

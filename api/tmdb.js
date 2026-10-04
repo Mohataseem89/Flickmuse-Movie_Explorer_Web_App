@@ -14,7 +14,8 @@ const ALLOWED_PATHS = [
   /^\/movie\/\d+(?:\/similar)?$/,
   /^\/tv\/(popular|on_the_air|top_rated)$/, 
   /^\/tv\/\d+(?:\/similar)?$/,
-  /^\/person\/\d+(?:\/movie_credits)?$/,
+  /^\/person\/\d+(?:\/(?:movie_credits|combined_credits))?$/,
+  /^\/collection\/\d+$/,
 ];
 
 // Only parameters used by the browser client are forwarded to TMDb. This keeps

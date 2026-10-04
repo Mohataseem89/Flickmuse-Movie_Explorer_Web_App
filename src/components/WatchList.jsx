@@ -46,10 +46,11 @@ const getMovieGenres = (movie) =>
     .map((id) => GENRE_MAP[id])
     .filter(Boolean);
 
-const WatchList = ({ watchlist, handleRemoveFromWatchlist }) => {
+const WatchList = ({ watchlist, handleRemoveFromWatchlist, changeViewingState }) => {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("added");
   const [selectedGenre, setSelectedGenre] = useState("All");
+  const [stateFilter, setStateFilter] = useState("all");
   const { genreMap } = useGenres();
 
   usePageMetadata({
@@ -82,7 +83,8 @@ const WatchList = ({ watchlist, handleRemoveFromWatchlist }) => {
           (genreId) => (genreMap[genreId] || GENRE_MAP[genreId]) === selectedGenre
         );
 
-      return matchesSearch && matchesGenre;
+      const matchesState = stateFilter === "all" || movie.viewing_state === stateFilter;
+      return matchesSearch && matchesGenre && matchesState;
     });
 
     return [...results].sort((first, second) => {
@@ -102,7 +104,7 @@ const WatchList = ({ watchlist, handleRemoveFromWatchlist }) => {
       }
       return watchlist.indexOf(first) - watchlist.indexOf(second);
     });
-  }, [watchlist, search, selectedGenre, sortBy, genreMap]);
+  }, [watchlist, search, selectedGenre, sortBy, genreMap, stateFilter]);
 
   const shareWatchlist = async () => {
     const items = encodeSharedList(watchlist);
@@ -115,6 +117,7 @@ const WatchList = ({ watchlist, handleRemoveFromWatchlist }) => {
     setSearch("");
     setSelectedGenre("All");
     setSortBy("added");
+    setStateFilter("all");
   };
 
   if (watchlist.length === 0) {
@@ -170,6 +173,8 @@ const WatchList = ({ watchlist, handleRemoveFromWatchlist }) => {
             Add more movies
           </Link>
         </header>
+
+        <div className="mt-8 flex flex-wrap gap-2" role="group" aria-label="Filter library by viewing state">{[["all","All"],["want-to-watch","Want to Watch"],["watching","Watching"],["watched","Watched"]].map(([value,label])=>{const count=value==="all"?watchlist.length:watchlist.filter(item=>item.viewing_state===value).length;return <button key={value} type="button" onClick={()=>setStateFilter(value)} aria-pressed={stateFilter===value} className={`min-h-11 rounded-xl border px-4 text-sm font-bold ${stateFilter===value?"border-red-500 bg-red-600 text-white":"border-white/10 bg-white/[0.04] text-gray-300"}`}>{label} ({count})</button>})}</div>
 
         <div className="my-8 grid gap-3 rounded-3xl border border-white/10 bg-[#11151c] p-3 sm:p-4 lg:grid-cols-[minmax(260px,1fr)_220px_220px]">
           <label className="relative block">
@@ -289,6 +294,7 @@ const WatchList = ({ watchlist, handleRemoveFromWatchlist }) => {
                       </p>
                     </div>
 
+                    <div className="col-span-full"><label className="sr-only" htmlFor={`state-mobile-${movie.media_type || "movie"}-${movie.id}`}>Viewing state</label><select id={`state-mobile-${movie.media_type || "movie"}-${movie.id}`} value={movie.viewing_state || "want-to-watch"} onChange={(event)=>changeViewingState?.(movie,event.target.value)} className="min-h-11 w-full rounded-xl border border-white/10 bg-[#080a0f] px-3 text-sm font-bold text-white"><option value="want-to-watch">Want to Watch</option><option value="watching">Watching</option><option value="watched">Watched</option></select></div>
                     <button
                       type="button"
                       onClick={() => handleRemoveFromWatchlist(movie)}
@@ -376,6 +382,7 @@ const WatchList = ({ watchlist, handleRemoveFromWatchlist }) => {
                           {genres.join(", ") || "N/A"}
                         </td>
                         <td className="px-5 py-4 text-right">
+                          <select aria-label={`Viewing state for ${title}`} value={movie.viewing_state || "want-to-watch"} onChange={(event)=>changeViewingState?.(movie,event.target.value)} className="min-h-11 rounded-xl border border-white/10 bg-[#080a0f] px-3 text-xs font-bold text-white"><option value="want-to-watch">Want to Watch</option><option value="watching">Watching</option><option value="watched">Watched</option></select>
                           <button
                             type="button"
                             onClick={() => handleRemoveFromWatchlist(movie)}

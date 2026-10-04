@@ -1,38 +1,75 @@
 import { useCallback, useState } from "react";
+
 import {
   addMovieToWatchlist,
   loadWatchlist,
   removeMovieFromWatchlist,
   saveWatchlist,
+  setViewingState,
 } from "../utils/watchlist";
 
 export function useWatchlist() {
-  const [watchlist, setWatchlist] = useState(loadWatchlist);
+  const [watchlist, setWatchlist] = useState(
+    loadWatchlist
+  );
+
+  const commit = useCallback(
+    (next) => {
+      saveWatchlist(next);
+      setWatchlist(next);
+    },
+    []
+  );
 
   const addToWatchlist = useCallback(
     (movie) => {
-      const result = addMovieToWatchlist(watchlist, movie);
-      if (!result.added) return false;
+      const result = addMovieToWatchlist(
+        watchlist,
+        movie
+      );
 
-      saveWatchlist(result.watchlist);
-      setWatchlist(result.watchlist);
+      if (!result.added) {
+        return false;
+      }
+
+      commit(result.watchlist);
+
       return true;
     },
-    [watchlist]
+    [watchlist, commit]
   );
 
   const removeFromWatchlist = useCallback(
     (movie) => {
-      const updatedWatchlist = removeMovieFromWatchlist(watchlist, movie);
-      saveWatchlist(updatedWatchlist);
-      setWatchlist(updatedWatchlist);
+      commit(
+        removeMovieFromWatchlist(
+          watchlist,
+          movie
+        )
+      );
     },
-    [watchlist]
+    [watchlist, commit]
+  );
+
+  const changeViewingState = useCallback(
+    (movie, state) => {
+      const result = setViewingState(
+        watchlist,
+        movie,
+        state
+      );
+
+      commit(result.watchlist);
+
+      return result.changed;
+    },
+    [watchlist, commit]
   );
 
   return {
     watchlist,
     addToWatchlist,
     removeFromWatchlist,
+    changeViewingState,
   };
 }

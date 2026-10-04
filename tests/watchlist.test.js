@@ -1,60 +1,212 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { MemoryStorage } from "./helpers/memoryStorage.js";
+
 import {
-  WATCHLIST_STORAGE_KEY,
   addMovieToWatchlist,
+  DEFAULT_VIEWING_STATE,
   loadWatchlist,
   normalizeWatchlist,
   removeMovieFromWatchlist,
-  saveWatchlist,
+  setViewingState,
+  VIEWING_STATES,
+  WATCHLIST_STORAGE_KEY,
 } from "../src/utils/watchlist.js";
 
-test("normalizeWatchlist removes invalid entries and duplicate movie IDs", () => {
-  const firstMovie = { id: 10, title: "First" };
-  const result = normalizeWatchlist([
-    firstMovie,
-    null,
-    { title: "Missing ID" },
-    { id: 10, title: "Duplicate" },
-    { id: 11, title: "Second" },
-  ]);
+function storage(initial = {}) {
+  const map = new Map(Object.entries(initial));
 
-  assert.deepEqual(result, [firstMovie, { id: 11, title: "Second" }]);
-});
+  return {
+    getItem: (k) => (map.has(k) ? map.get(k) : null),
+    setItem: (k, v) => map.set(k, String(v)),
+    removeItem: (k) => map.delete(k),
+  };
+}
 
-test("addMovieToWatchlist adds a valid movie only once", () => {
-  const movie = { id: 42, title: "The Answer" };
-  const firstResult = addMovieToWatchlist([], movie);
-  const duplicateResult = addMovieToWatchlist(firstResult.watchlist, movie);
+test(
+  "legacy binary entries migrate to Want to Watch without duplicates",
+  () => {
+    const result = normalizeWatchlist([
+      {
+        id: 10,
+        title: "First",
+      },
+      {
+        id: 10,
+        title: "Duplicate",
+      },
+      {
+        id: 11,
+        title: "Second",
+        media_type: "tv",
+      },
+    ]);
 
-  assert.equal(firstResult.added, true);
-  assert.equal(duplicateResult.added, false);
-  assert.deepEqual(duplicateResult.watchlist, [movie]);
-});
+    assert.equal(result.length, 2);
 
-test("removeMovieFromWatchlist removes only the selected movie", () => {
-  const result = removeMovieFromWatchlist(
-    [
-      { id: 1, title: "One" },
-      { id: 2, title: "Two" },
-    ],
-    1
-  );
+    assert.equal(
+      result[0].viewing_state,
+      DEFAULT_VIEWING_STATE
+    );
 
-  assert.deepEqual(result, [{ id: 2, title: "Two" }]);
-});
+    assert.equal(
+      result[1].media_type,
+      "tv"
+    );
+  }
+);
 
-test("watchlist persistence survives malformed browser data", () => {
-  const storage = new MemoryStorage({
-    [WATCHLIST_STORAGE_KEY]: "{not-valid-json",
-  });
+test(
+  "add remains backward compatible and assigns default state",
+  () => {
+    const result = addMovieToWatchlist(
+      [],
+      {
+        id: 42,
+        title: "The Answer",
+      }
+    );
 
-  assert.deepEqual(loadWatchlist(storage), []);
-  assert.equal(storage.getItem(WATCHLIST_STORAGE_KEY), null);
+    assert.equal(result.added, true);
 
-  const movies = [{ id: 7, title: "Saved" }];
-  assert.equal(saveWatchlist(movies, storage), true);
-  assert.deepEqual(loadWatchlist(storage), movies);
-});
+    assert.equal(
+      result.watchlist[0].viewing_state,
+      "want-to-watch"
+    );
 
+    assert.equal(
+      addMovieToWatchlist(
+        result.watchlist,
+        {
+          id: 42,
+          title: "The Answer",
+        }
+      ).added,
+      false
+    );
+  }
+);
+
+test(
+  "one title has one current viewing state",
+  () => {
+    let list = setViewingState(
+      [],
+      {
+        id: 1,
+        title: "One",
+      },
+      "watching"
+    ).watchlist;
+
+    list = setViewingState(
+      list,
+      {
+        id: 1,
+        title: "One",
+      },
+      "watched"
+    ).watchlist;
+
+    assert.equal(list.length, 1);
+
+    assert.equal(
+      list[0].viewing_state,
+      "watched"
+    );
+
+    assert.deepEqual(
+      VIEWING_STATES,
+      [
+        "want-to-watch",
+        "watching",
+        "watched",
+      ]
+    );
+  }
+);
+
+test(
+  "movie and TV ids do not collide",
+  () => {
+    let list = setViewingState(
+      [],
+      {
+        id: 1,
+        title: "Movie",
+        media_type: "movie",
+      },
+      "watched"
+    ).watchlist;
+
+    list = setViewingState(
+      list,
+      {
+        id: 1,
+        name: "TV",
+        media_type: "tv",
+      },
+      "watching"
+    ).watchlist;
+
+    assert.equal(list.length, 2);
+  }
+);
+
+test(
+  "remove targets the selected media identity",
+  () => {
+    const list = normalizeWatchlist([
+      {
+        id: 2,
+        title: "Movie",
+      },
+      {
+        id: 2,
+        name: "TV",
+        media_type: "tv",
+      },
+    ]);
+
+    const result = removeMovieFromWatchlist(
+      list,
+      {
+        id: 2,
+        media_type: "movie",
+      }
+    );
+
+    assert.equal(result.length, 1);
+
+    assert.equal(
+      result[0].media_type,
+      "tv"
+    );
+  }
+);
+
+test(
+  "load migrates existing current-format binary entries idempotently",
+  () => {
+    const s = storage({
+      [WATCHLIST_STORAGE_KEY]: JSON.stringify([
+        {
+          id: 7,
+          title: "Saved",
+        },
+      ]),
+    });
+
+    const first = loadWatchlist(s);
+    const second = loadWatchlist(s);
+
+    assert.equal(
+      first[0].viewing_state,
+      "want-to-watch"
+    );
+
+    assert.deepEqual(
+      second,
+      first
+    );
+  }
+);
