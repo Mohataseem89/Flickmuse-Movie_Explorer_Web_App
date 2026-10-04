@@ -1,27 +1,15 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { slugifyTitle } from "../src/utils/mediaUrl.js";
 
 const SITE_URL = "https://flickmuse.mohataseem.com";
 const ROOT_DIRECTORY = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST_DIRECTORY = join(ROOT_DIRECTORY, "dist");
 const PUBLIC_SITEMAP = join(ROOT_DIRECTORY, "public", "sitemap.xml");
 const MAX_MOVIES = 12;
-const MAX_PEOPLE = 12;
 
 const escapeHtml = (value = "") => String(value).replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]);
-
-function slugifyTitle(value = "") {
-  return String(value)
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/['’]/g, "")
-    .toLowerCase()
-    .replace(/&/g, " and ")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .replace(/-{2,}/g, "-") || "title";
-}
 
 function mediaPath(media, type = "movie") {
   const title = media.title || media.name || "title";
@@ -30,7 +18,7 @@ function mediaPath(media, type = "movie") {
 
 async function tmdb(path) {
   const url = new URL("https://api.themoviedb.org/3" + path);
-  url.searchParams.set("api_key", process.env.VITE_TMDB_API_KEY);
+  url.searchParams.set("api_key", process.env.TMDB_API_KEY);
   url.searchParams.set("language", "en-US");
   const response = await fetch(url, { headers: { accept: "application/json" } });
   if (!response.ok) throw new Error("TMDb returned " + response.status + " for " + path);
@@ -71,17 +59,18 @@ async function writeStaticSitemap() {
 
 async function run() {
   await writeStaticSitemap();
-  if (!process.env.VITE_TMDB_API_KEY || process.env.VITE_TMDB_API_KEY === "ci-placeholder-key") {
-    console.log("SEO generation skipped: VITE_TMDB_API_KEY is not available for this build.");
+  if (!process.env.TMDB_API_KEY || process.env.TMDB_API_KEY === "ci-placeholder-key") {
+    console.log("SEO generation skipped: TMDB_API_KEY is not available for this build.");
     return;
   }
   try {
     const [popular, trending, popularTv, trendingTv] = await Promise.all([tmdb("/movie/popular"), tmdb("/trending/movie/week"), tmdb("/tv/popular"), tmdb("/trending/tv/week")]);
     const movies = [...(popular.results || []), ...(trending.results || [])].filter((movie, index, list) => movie.id && list.findIndex((item) => item.id === movie.id) === index).slice(0, MAX_MOVIES);
     const tvShows = [...(popularTv.results || []), ...(trendingTv.results || [])].filter((show, index, list) => show.id && list.findIndex((item) => item.id === show.id) === index).slice(0, MAX_MOVIES);
-    const credits = await Promise.all(movies.slice(0, 6).map((movie) => tmdb(`/movie/${movie.id}/credits`)));
-    const people = credits.flatMap((credit) => credit.cast || []).filter((person, index, list) => person.id && list.findIndex((item) => item.id === person.id) === index).slice(0, MAX_PEOPLE);
-    const entries = [{ path: "/", priority: "1.0" }, { path: "/discover", priority: "0.8" }, { path: "/tv", priority: "0.8" }, ...movies.map((movie) => ({ path: mediaPath(movie, "movie"), priority: "0.7" })), ...tvShows.map((show) => ({ path: mediaPath(show, "tv"), priority: "0.7" })), ...people.map((person) => ({ path: `/person/${person.id}`, priority: "0.6" }))];
+    // Only list URLs that receive matching static HTML in this build. Person
+    // pages remain crawlable through genuine internal links, but are not added
+    // to the sitemap until they are also prerendered.
+    const entries = [{ path: "/", priority: "1.0" }, { path: "/discover", priority: "0.8" }, { path: "/tv", priority: "0.8" }, ...movies.map((movie) => ({ path: mediaPath(movie, "movie"), priority: "0.7" })), ...tvShows.map((show) => ({ path: mediaPath(show, "tv"), priority: "0.7" }))];
     const sitemap = makeSitemap(entries);
     await Promise.all([writeFile(PUBLIC_SITEMAP, sitemap), writeFile(join(DIST_DIRECTORY, "sitemap.xml"), sitemap)]);
     const indexHtml = await readFile(join(DIST_DIRECTORY, "index.html"), "utf8");

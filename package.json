@@ -21,10 +21,11 @@
   ],
   "type": "module",
   "engines": {
-    "node": ">=24"
+    "node": ">=22.12.0"
   },
   "scripts": {
     "dev": "vite",
+    "dev:full": "npx vercel@latest dev",
     "build": "vite build && node scripts/generate-seo-pages.mjs",
     "lint": "eslint .",
     "test:utils": "node --test tests/*.test.js",
@@ -49,13 +50,11 @@
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.5.2",
-    "autoprefixer": "^10.4.21",
     "eslint": "^9.29.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.2.0",
     "jsdom": "^30.0.1",
-    "postcss": "^8.5.6",
     "tailwindcss": "^4.1.11",
     "vite": "^7.0.0",
     "vitest": "^5.0.0"

@@ -30,6 +30,8 @@ export default function PersonDetails({
       "Explore this film professional's biography and movie credits on FlickMuse.",
     image: getImageUrl(person?.profile_path, "h632"),
     type: "profile",
+    canonicalPath: person ? "/person/" + person.id : undefined,
+    robots: error || (!loading && !person) ? "noindex,follow" : "index,follow",
     structuredData: person
       ? {
           "@context": "https://schema.org",

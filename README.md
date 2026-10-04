@@ -1,10 +1,10 @@
 # FlickMuse — Movie Discovery, Trailers & Cast
 
-[![CI](https://https://github.com/Mohataseem89/Flickmuse-Movie_Explorer_Web_App/actions/workflows/ci.yml/badge.svg)](https://https://github.com/Mohataseem89/Flickmuse-Movie_Explorer_Web_App/actions/workflows/ci.yml)
+[![CI](https://github.com/Mohataseem89/Flickmuse-Movie_Explorer_Web_App/actions/workflows/ci.yml/badge.svg)](https://github.com/Mohataseem89/Flickmuse-Movie_Explorer_Web_App/actions/workflows/ci.yml)
 
 FlickMuse is a movie and TV discovery application built with React and TMDb. Explore popular, trending, upcoming, and top-rated titles; use shareable filters; watch trailers; browse cast and crew; check India streaming availability when TMDb provides it; and save a personal watchlist.
 
-[Live demo](https://flickmuse.mohataseem.com/) · [Source code](https://github.com/Mohataseem89/FlickMuse-Movie_Explorer_Web_App)
+[Live demo](https://flickmuse.mohataseem.com/) · [Source code](https://github.com/Mohataseem89/Flickmuse-Movie_Explorer_Web_App) · [Local development](docs/LOCAL_DEVELOPMENT.md) · [Security](docs/SECURITY.md)
 
 
 ## Highlights
@@ -26,7 +26,7 @@ flowchart LR
   proxy --> tmdb[TMDb API]
 ```
 
-Movie data is requested through `api/tmdb.js`, a Vercel serverless proxy. The TMDb API key stays in the server environment as `API_KEY`; it is not bundled into the browser. Watchlist and search-history data remain on the user’s device, so the app does not require accounts or a database.
+Movie data is requested through `api/tmdb.js`, a narrowly allowlisted Vercel serverless proxy. The TMDb API key stays in the server environment as `TMDB_API_KEY`; it is never bundled into browser code. The build-time SEO generator can use the same server-side variable to create a sitemap and static HTML for selected movie and TV pages. Watchlist and search-history data remain on the user’s device, so the app does not require accounts or a database.
 
 ## Technology
 
@@ -42,29 +42,31 @@ Movie data is requested through `api/tmdb.js`, a Vercel serverless proxy. The TM
 
 ## Run locally
 
-Requirements: Node.js 20+ and a TMDb API key.
+Requirements: Node.js 22.12+ (Node 24 is recommended; see `.nvmrc`), npm, and a TMDb API key.
 
 ```bash
 git clone https://github.com/Mohataseem89/Flickmuse-Movie_Explorer_Web_App.git
-cd FlickMuse-Movie_Explorer_Web_App
-npm install
-cp .env.example .env
-npm run dev
+cd Flickmuse-Movie_Explorer_Web_App
+npm ci
+cp .env.example .env.local
 ```
 
-Add this value to `.env`:
+Add this value to `.env.local`:
 
 ```env
-API_KEY=your_tmdb_api_key
+TMDB_API_KEY=your_tmdb_api_key
 ```
 
-Never commit `.env`. In Vercel, add the same `API_KEY` environment variable for the environments you deploy to.
+Use `npm run dev:full` to run the complete app locally, including the Vercel `/api/tmdb` function. Vite alone (`npm run dev`) is useful for UI work but does not execute the local Vercel function, so movie data requests will fail without an external proxy. The first full-development run may ask you to authenticate with Vercel.
+
+Never commit `.env.local`. In Vercel, add the same `TMDB_API_KEY` environment variable for every environment you deploy to. Do not use a `VITE_TMDB_API_KEY` variable: Vite exposes `VITE_*` variables to browser code.
 
 ## Commands
 
 | Command | Purpose |
 | --- | --- |
 | `npm run dev` | Start local development |
+| `npm run dev:full` | Start Vercel local development with the TMDb proxy |
 | `npm run lint` | Run ESLint |
 | `npm run test` | Run utility, contrast, and component tests |
 | `npm run test:utils` | Run storage and contrast tests |
@@ -86,10 +88,12 @@ tests/            # Regression tests
 docs/             # Architecture, testing, performance, and screenshot notes
 ```
 
+See [Local development](docs/LOCAL_DEVELOPMENT.md), [SEO](docs/SEO.md), and [Security](docs/SECURITY.md) for the implementation details and operational checks.
+
 
 ## Deployment
 
-Vercel uses `vercel.json` for SPA rewrites, caching, and security headers. Set `API_KEY` in Vercel before deployment. The production domain is `https://flickmuse.mohataseem.com/`.
+Vercel uses `vercel.json` for SPA rewrites, caching, and security headers. Set `TMDB_API_KEY` in Vercel before deployment. The production domain is `https://flickmuse.mohataseem.com/`. The build generates SEO pages only when that variable is available; the CI placeholder deliberately skips API-backed generation.
 
 ## Attribution
 

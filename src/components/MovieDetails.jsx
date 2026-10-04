@@ -103,6 +103,7 @@ export default function MovieDetails({
         : "Explore movie details, trailers, cast, crew, recommendations, and similar titles on FlickMuse.",
     image: getImageUrl(movie?.backdrop_path, "w1280"),
     canonicalPath,
+    robots: error || (!loading && !movie) ? "noindex,follow" : "index,follow",
     type: mediaType === "tv" ? "video.tv_show" : "video.movie",
     structuredData: movie
       ? {
