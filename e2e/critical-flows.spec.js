@@ -59,10 +59,22 @@ test("@mobile mobile navigation and search remain usable", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("main")).toBeVisible();
 
-  const search = page
-    .getByRole("combobox", { name: /search movies, tv shows and people/i })
-    .first();
+  // The compact SearchBar intentionally lives inside the collapsed mobile
+  // navigation, so open that navigation before interacting with the field.
+  const menuButton = page.getByRole("button", { name: /open navigation menu/i });
+  await expect(menuButton).toBeVisible();
+  await menuButton.click();
 
+  const mobileNavigation = page.locator("#mobile-navigation");
+  await expect(mobileNavigation).toBeVisible();
+
+  const search = mobileNavigation.getByRole("combobox", {
+    name: /search movies, tv shows and people/i,
+  });
+  await expect(search).toBeVisible();
   await search.fill("Matrix");
-  await expect(page.getByRole("option", { name: /The Matrix/i })).toBeVisible();
+
+  await expect(
+    mobileNavigation.getByRole("option", { name: /The Matrix/i })
+  ).toBeVisible();
 });
