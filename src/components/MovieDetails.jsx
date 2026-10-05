@@ -16,6 +16,7 @@ import { usePageMetadata } from "../hooks/usePageMetadata";
 import { absoluteUrl, textForMeta } from "../seo/site";
 import { getMediaPath, getPersonPath, slugifyTitle } from "../utils/mediaUrl";
 import { getInitialRegion, getRegionName, saveRegion, WATCH_REGIONS } from "../utils/region";
+import { getWatchProviderLinkHint, resolveWatchProviderUrl } from "../utils/providerLinks";
 import MovieCards from "./MovieCards";
 import TrailerModal from "./TrailerModal";
 import SeasonExplorer from "./SeasonExplorer";
@@ -394,7 +395,50 @@ export default function MovieDetails({
 
           <section className="mt-9" aria-labelledby="where-to-watch-title">
             <div className="flex flex-wrap items-end justify-between gap-3"><div><h2 id="where-to-watch-title" className="text-sm font-bold uppercase tracking-[0.18em] text-gray-400">Where to watch</h2><p className="mt-1 text-sm text-gray-400">Availability for {getRegionName(watchRegion)}</p></div><label className="text-xs font-bold text-gray-400">Region<span className="sr-only"> for watch providers</span><select value={watchRegion} onChange={(event)=>{setWatchRegion(event.target.value);saveRegion(event.target.value)}} className="ml-2 min-h-11 rounded-xl border border-white/10 bg-[#11151c] px-3 text-sm text-white">{WATCH_REGIONS.map(([code,name])=><option key={code} value={code}>{name}</option>)}</select></label></div>
-            {providerGroups.length ? <div className="mt-4 space-y-4">{providerGroups.map(([label,providers])=><div key={label}><h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">{label}</h3><div className="mt-2 flex flex-wrap gap-3">{providers.slice(0,8).map((provider)=><a key={provider.provider_id} href={providerData.link} target="_blank" rel="noreferrer" className="group flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] p-2 pr-3 text-sm font-bold text-gray-200 transition hover:border-white/25 hover:bg-white/[0.08]"><img src={getImageUrl(provider.logo_path,"w92")} alt="" width="36" height="36" className="h-9 w-9 rounded-lg object-cover"/>{provider.provider_name}</a>)}</div></div>)}</div> : <p className="mt-3 text-sm leading-6 text-gray-400">Watch-provider information is not currently listed for {getRegionName(watchRegion)}.</p>}
+            {providerGroups.length ? (
+              <div className="mt-4 space-y-4">
+                {providerGroups.map(([label, providers]) => (
+                  <div key={label}>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">{label}</h3>
+                    <div className="mt-2 flex flex-wrap gap-3">
+                      {providers.slice(0, 8).map((provider) => {
+                        const resolvedLink = resolveWatchProviderUrl({
+                          provider,
+                          title,
+                          region: watchRegion,
+                          tmdbWatchUrl: providerData?.link,
+                        });
+                        if (!resolvedLink) return null;
+
+                        return (
+                          <a
+                            key={provider.provider_id}
+                            href={resolvedLink.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={resolvedLink.ariaLabel}
+                            title={getWatchProviderLinkHint(resolvedLink.destination)}
+                            className="group flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] p-2 pr-3 text-sm font-bold text-gray-200 transition hover:border-white/25 hover:bg-white/[0.08]"
+                          >
+                            <img
+                              src={getImageUrl(provider.logo_path, "w92")}
+                              alt=""
+                              width="36"
+                              height="36"
+                              className="h-9 w-9 rounded-lg object-cover"
+                            />
+                            {provider.provider_name}
+                          </a>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+                <p className="text-xs leading-5 text-gray-500">
+                  Streaming availability data provided by JustWatch via TMDB. Provider links open a provider search when a verified search destination is available; otherwise they open TMDB watch options.
+                </p>
+              </div>
+            ) : <p className="mt-3 text-sm leading-6 text-gray-400">Watch-provider information is not currently listed for {getRegionName(watchRegion)}.</p>}
           </section>
 
           <dl className="mt-9 grid gap-3 sm:grid-cols-3">
