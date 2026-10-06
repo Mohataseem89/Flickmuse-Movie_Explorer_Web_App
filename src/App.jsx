@@ -6,7 +6,9 @@ import PageLoader from "./components/PageLoader";
 import ScrollToTop from "./components/ScrollToTop";
 import Toast from "./components/Toast";
 import RouteTransition from "./components/RouteTransition";
+import InstallAppPrompt from "./components/InstallAppPrompt";
 import { useWatchlist } from "./hooks/useWatchlist";
+import { usePwaInstall } from "./hooks/usePwaInstall";
 
 const HomePage = lazy(() => import("./pages/HomePage"));
 const DiscoverPage = lazy(() => import("./pages/DiscoverPage"));
@@ -26,6 +28,7 @@ const CollectionPage = lazy(() => import("./pages/CollectionPage"));
 function App() {
   const { watchlist, addToWatchlist, removeFromWatchlist, changeViewingState } = useWatchlist();
   const [toast, setToast] = useState(null);
+  const pwaInstall = usePwaInstall();
 
   const showToast = (message, tone = "success") => {
     setToast({ id: Date.now(), message, tone });
@@ -62,7 +65,7 @@ function App() {
         Skip to content
       </a>
 
-      <Navbar watchlistCount={watchlist.length} />
+      <Navbar watchlistCount={watchlist.length} installAvailable={pwaInstall.installAvailable} onInstallApp={pwaInstall.install} />
 
       <main id="main-content" tabIndex="-1" className="min-h-[calc(100svh-5rem)] outline-none">
         <Suspense fallback={<PageLoader />}>
@@ -99,6 +102,13 @@ function App() {
 
       <Footer />
       <Toast key={toast?.id} toast={toast} onClose={() => setToast(null)} />
+      <InstallAppPrompt
+        showBanner={pwaInstall.showBanner}
+        iosInstructionsOpen={pwaInstall.iosInstructionsOpen}
+        onInstall={pwaInstall.install}
+        onDismiss={pwaInstall.dismissBanner}
+        onCloseInstructions={pwaInstall.closeIosInstructions}
+      />
 
     </BrowserRouter>
   );

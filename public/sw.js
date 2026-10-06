@@ -1,4 +1,4 @@
-const VERSION = "flickmuse-v2";
+const VERSION = "flickmuse-v3";
 
 const SHELL = `${VERSION}-shell`;
 const IMAGES = `${VERSION}-tmdb-images`;

@@ -1,9 +1,9 @@
-import { Bookmark, Clapperboard, Compass, Home, Menu, Tv, X } from "lucide-react";
+import { Bookmark, Clapperboard, Compass, Download, Home, Menu, Tv, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import SearchBar from "./SearchBar";
 
-const Navbar = ({ watchlistCount }) => {
+const Navbar = ({ watchlistCount, installAvailable, onInstallApp }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButtonRef = useRef(null);
   const location = useLocation();
@@ -84,6 +84,17 @@ const Navbar = ({ watchlistCount }) => {
                 </Link>
               );
             })}
+            {installAvailable && (
+              <button
+                type="button"
+                onClick={onInstallApp}
+                className="flex h-11 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-gray-400 transition-colors hover:bg-white/5 hover:text-white xl:px-4"
+                aria-label="Install FlickMuse app"
+              >
+                <Download className="h-[18px] w-[18px]" aria-hidden="true" />
+                <span className="hidden xl:inline">Install App</span>
+              </button>
+            )}
           </div>
 
           <button
@@ -145,6 +156,16 @@ const Navbar = ({ watchlistCount }) => {
                   </Link>
                 );
               })}
+              {installAvailable && (
+                <button
+                  type="button"
+                  onClick={() => { onInstallApp(); setMenuOpen(false); }}
+                  className="flex min-h-12 w-full items-center gap-3 rounded-xl px-4 font-semibold text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
+                >
+                  <Download className="h-5 w-5" aria-hidden="true" />
+                  <span>Install App</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

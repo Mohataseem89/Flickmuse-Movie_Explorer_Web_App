@@ -1,29 +1,16 @@
 {
+  "id": "/",
   "name": "FlickMuse — Movie Discovery",
   "short_name": "FlickMuse",
-  "description": "Discover movies, trailers, cast information, and recommendations.",
+  "description": "Discover movies and TV shows, watch trailers, explore cast information, and keep a personal watchlist.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#080a0f",
   "theme_color": "#dc2626",
   "icons": [
-    {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
   ]
 }
