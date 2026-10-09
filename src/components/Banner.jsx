@@ -1,6 +1,6 @@
 import { CalendarDays, Clapperboard, Info, Star } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getImageUrl, getTrendingMovies } from "../api/tmdb";
 import { getMediaPath } from "../utils/mediaUrl";
 
@@ -109,12 +109,6 @@ const Banner = () => {
     return undefined;
   }, [currentIndex, movies]);
 
-  const handleBrowseMovies = () => {
-    document
-      .getElementById("popular-movies")
-      ?.scrollIntoView({ behavior: "smooth" });
-  };
-
   if (loading) {
     return (
       <section className="home-hero relative min-h-[620px] overflow-hidden bg-[#0d1118] sm:min-h-[680px]">
@@ -210,14 +204,13 @@ const Banner = () => {
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <button
-              type="button"
-              onClick={handleBrowseMovies}
+            <Link
+              to="/discover"
               className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-red-600 px-6 font-bold text-white shadow-lg shadow-red-950/30 transition-[transform,background-color] duration-200 hover:-translate-y-0.5 hover:bg-red-500"
             >
               <Clapperboard className="h-5 w-5" aria-hidden="true" />
               Browse movies
-            </button>
+            </Link>
             <button
               type="button"
               disabled={!currentMovie.id}

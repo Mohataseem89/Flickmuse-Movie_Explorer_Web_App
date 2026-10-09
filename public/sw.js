@@ -1,4 +1,4 @@
-const VERSION = "flickmuse-v3";
+const VERSION = "flickmuse-v4";
 
 const SHELL = `${VERSION}-shell`;
 const IMAGES = `${VERSION}-tmdb-images`;
@@ -13,7 +13,15 @@ const SHELL_ASSETS = [
 ];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(SHELL).then((cache) => cache.addAll(SHELL_ASSETS)));
+  event.waitUntil(
+    caches.open(SHELL).then(async (cache) => {
+      // Cache the offline document first; optional assets must not abort SW install.
+      await cache.add("/");
+      await Promise.allSettled(
+        SHELL_ASSETS.filter((asset) => asset !== "/").map((asset) => cache.add(asset))
+      );
+    })
+  );
   self.skipWaiting();
 });
 
@@ -60,6 +68,18 @@ self.addEventListener("fetch", (event) => {
   }
 
   const url = new URL(request.url);
+
+  // Never intercept worker updates or machine-readable/static documents.
+  // An older worker must not serve cached HTML in place of JavaScript or JSON.
+  if (url.origin === self.location.origin && (
+    url.pathname === "/sw.js" ||
+    url.pathname === "/llms.txt" ||
+    url.pathname === "/ai-catalog.json" ||
+    url.pathname.startsWith("/.well-known/") ||
+    url.pathname === "/robots.txt" ||
+    url.pathname === "/sitemap.xml" ||
+    url.pathname === "/site.webmanifest"
+  )) return;
 
   // API responses must always come from the network.
   if (url.pathname.startsWith("/api/")) {

@@ -1,0 +1,13 @@
+# FlickMuse
+
+FlickMuse is a movie and TV discovery website. Browse titles, trailers, cast, genres, and streaming availability, and manage a personal watchlist in the browser. Streaming links and availability can vary by region.
+
+## Explore FlickMuse
+
+- [Home](https://flickmuse.mohataseem.com/): Featured and trending movies.
+- [Discover](https://flickmuse.mohataseem.com/discover): Explore movies with filters.
+- [TV shows](https://flickmuse.mohataseem.com/tv): Discover television series.
+- [Top rated](https://flickmuse.mohataseem.com/top-rated): Explore highly rated movies.
+- [Science fiction](https://flickmuse.mohataseem.com/genre/science-fiction): Explore science-fiction titles.
+
+FlickMuse uses TMDB for movie and TV information. FlickMuse is not a streaming service and does not host movies or TV episodes.
