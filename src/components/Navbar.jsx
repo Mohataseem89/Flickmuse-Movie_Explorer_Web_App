@@ -1,4 +1,4 @@
-import { Bookmark, Clapperboard, Compass, Download, Home, Menu, Tv, X } from "lucide-react";
+import { Bookmark, Clapperboard, Compass, Download, Home, Instagram, Menu, Tv, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import SearchBar from "./SearchBar";
@@ -84,6 +84,16 @@ const Navbar = ({ watchlistCount, installAvailable, onInstallApp }) => {
                 </Link>
               );
             })}
+            <a
+              href="https://www.instagram.com/smozaic/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-11 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-pink-300 transition-colors hover:bg-pink-500/10 hover:text-pink-200 xl:px-4"
+              aria-label="Visit Smozaic on Instagram (opens in a new tab)"
+            >
+              <Instagram className="h-[18px] w-[18px]" aria-hidden="true" />
+              <span className="hidden xl:inline">Instagram</span>
+            </a>
             {installAvailable && (
               <button
                 type="button"
@@ -156,6 +166,16 @@ const Navbar = ({ watchlistCount, installAvailable, onInstallApp }) => {
                   </Link>
                 );
               })}
+              <a
+                href="https://www.instagram.com/smozaic/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex min-h-12 items-center gap-3 rounded-xl px-4 font-semibold text-pink-300 transition-colors hover:bg-pink-500/10 hover:text-pink-200"
+                aria-label="Visit Smozaic on Instagram (opens in a new tab)"
+              >
+                <Instagram className="h-5 w-5" aria-hidden="true" />
+                <span>Follow Smozaic on Instagram</span>
+              </a>
               {installAvailable && (
                 <button
                   type="button"

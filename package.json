@@ -39,8 +39,6 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.11",
-    "@vercel/analytics": "^2.0.1",
-    "@vercel/speed-insights": "^2.0.0",
     "lucide-react": "^0.525.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
@@ -48,6 +46,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
+    "@lhci/cli": "0.15.1",
+    "@playwright/test": "1.55.1",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@types/react": "^19.1.8",
@@ -59,10 +59,8 @@
     "globals": "^16.2.0",
     "jsdom": "^30.0.1",
     "tailwindcss": "^4.1.11",
+    "typescript": "5.9.2",
     "vite": "^7.0.0",
-    "vitest": "^5.0.0",
-    "@lhci/cli": "0.15.1",
-    "@playwright/test": "1.55.1",
-    "typescript": "5.9.2"
+    "vitest": "^5.0.0"
   }
 }
