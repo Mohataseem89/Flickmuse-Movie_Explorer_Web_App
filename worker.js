@@ -41,6 +41,13 @@ const ALLOWED_QUERY_PARAMETERS = new Set([
 ]);
 
 const MAX_QUERY_VALUE_LENGTH = 200;
+const SUCCESS_CACHE_CONTROL = "public, max-age=60, s-maxage=300, stale-while-revalidate=600";
+
+function withCacheStatus(response, status) {
+  const headers = new Headers(response.headers);
+  headers.set("X-FlickMuse-Cache", status);
+  return new Response(response.body, { status: response.status, headers });
+}
 
 function isAllowedPath(path) {
   return ALLOWED_PATHS.some((pattern) => pattern.test(path));
@@ -57,7 +64,7 @@ function jsonResponse(payload, status, cacheControl = "no-store") {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
     // Handle /api/tmdb requests
@@ -95,16 +102,42 @@ export default {
       }
       upstreamUrl.searchParams.set("api_key", apiKey);
 
+      // Cloudflare does NOT cache Worker responses just because they carry a
+      // Cache-Control header, so without this every visitor reached TMDb
+      // directly from Cloudflare's shared egress IPs and was rate limited (429).
+      // The key excludes api_key and is parameter-order independent.
+      const cache = typeof caches !== "undefined" ? caches.default : null;
+      const keyParams = new URLSearchParams(
+        [...upstreamUrl.searchParams.entries()]
+          .filter(([key]) => key !== "api_key")
+          .sort(([a], [b]) => a.localeCompare(b))
+      );
+      const cacheKey = new Request(
+        url.origin + "/__tmdb-cache" + path + "?" + keyParams.toString(),
+        { method: "GET" }
+      );
+
+      if (cache) {
+        const hit = await cache.match(cacheKey);
+        if (hit) return withCacheStatus(hit, "HIT");
+      }
+
       try {
         const upstream = await fetch(upstreamUrl.toString(), {
           headers: { accept: "application/json" },
         });
         const data = await upstream.json();
-        const cacheControl = upstream.ok
-          ? "public, s-maxage=300, stale-while-revalidate=600"
-          : "no-store";
 
-        return jsonResponse(data, upstream.status, cacheControl);
+        if (!upstream.ok) {
+          const response = jsonResponse(data, upstream.status);
+          const retryAfter = upstream.headers.get("Retry-After");
+          if (retryAfter) response.headers.set("Retry-After", retryAfter);
+          return withCacheStatus(response, "BYPASS");
+        }
+
+        const response = jsonResponse(data, upstream.status, SUCCESS_CACHE_CONTROL);
+        if (cache && ctx?.waitUntil) ctx.waitUntil(cache.put(cacheKey, response.clone()));
+        return withCacheStatus(response, "MISS");
       } catch {
         return jsonResponse({ error: "Movie data service is temporarily unavailable." }, 502);
       }
