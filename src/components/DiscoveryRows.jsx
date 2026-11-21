@@ -1,28 +1,33 @@
 import { ArrowRight } from "lucide-react";
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   getNowPlayingMovies,
   getTopRatedMovies,
   getUpcomingMovies,
 } from "../api/tmdb";
+import { useTmdbQuery } from "../hooks/useTmdbQuery";
+import DeferredSection from "./DeferredSection";
+import LoadError from "./LoadError";
 import MovieCards from "./MovieCards";
 
 const collections = [
   {
     key: "nowPlaying",
+    load: getNowPlayingMovies,
     eyebrow: "In cinemas",
     title: "Now playing",
     description: "Movies currently lighting up the big screen.",
   },
   {
     key: "upcoming",
+    load: getUpcomingMovies,
     eyebrow: "Plan your next watch",
     title: "Coming soon",
     description: "Upcoming releases worth keeping on your radar.",
   },
   {
     key: "topRated",
+    load: (signal) => getTopRatedMovies(1, signal),
     eyebrow: "Audience favorites",
     title: "Top rated",
     description: "Acclaimed films with consistently strong ratings.",
@@ -46,45 +51,55 @@ function RowSkeleton() {
   );
 }
 
+// Each collection loads independently, and only when it is near the viewport,
+// so one failed or rate-limited request never blanks the other rows and the
+// homepage does not fire every request at once.
+function CollectionRow({ collection, watchlist, handleAddToWatchlist, handleRemoveFromWatchlist }) {
+  const { data, loading, error, retry, cooldownSeconds } = useTmdbQuery(
+    collection.load,
+    collection.key,
+    { label: collection.title.toLowerCase() + " movies" }
+  );
+
+  if (error) {
+    return (
+      <LoadError
+        compact
+        title={collection.title + " could not be loaded"}
+        error={error}
+        onRetry={retry}
+        cooldownSeconds={cooldownSeconds}
+        loading={loading}
+      />
+    );
+  }
+
+  if (loading) return <RowSkeleton />;
+
+  return (
+    <div className="movie-row mt-7 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-5 sm:gap-5">
+      {(data?.results || []).slice(0, 14).map((movie) => (
+        <div
+          key={movie.id}
+          className="w-[42vw] max-w-[190px] shrink-0 snap-start sm:w-[190px]"
+        >
+          <MovieCards
+            movie={movie}
+            watchlist={watchlist}
+            handleAddToWatchlist={handleAddToWatchlist}
+            handleRemoveFromWatchlist={handleRemoveFromWatchlist}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function DiscoveryRows({
   watchlist,
   handleAddToWatchlist,
   handleRemoveFromWatchlist,
 }) {
-  const [rows, setRows] = useState({
-    nowPlaying: [],
-    upcoming: [],
-    topRated: [],
-  });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    Promise.all([
-      getNowPlayingMovies(controller.signal),
-      getUpcomingMovies(controller.signal),
-      getTopRatedMovies(1, controller.signal),
-    ])
-      .then(([nowPlaying, upcoming, topRated]) => {
-        setRows({
-          nowPlaying: nowPlaying.results || [],
-          upcoming: upcoming.results || [],
-          topRated: topRated.results || [],
-        });
-      })
-      .catch((error) => {
-        if (error.name !== "AbortError") {
-          console.error("Unable to load movie collections:", error);
-        }
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setLoading(false);
-      });
-
-    return () => controller.abort();
-  }, []);
-
   return (
     <section className="content-auto border-b border-white/[0.07] bg-[#0b0e14] py-16 sm:py-20">
       <div className="mx-auto max-w-[1600px] px-5 sm:px-8">
@@ -122,25 +137,17 @@ export default function DiscoveryRows({
                 {collection.description}
               </p>
 
-              {loading ? (
-                <RowSkeleton />
-              ) : (
-                <div className="movie-row mt-7 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-5 sm:gap-5">
-                  {rows[collection.key].slice(0, 14).map((movie) => (
-                    <div
-                      key={movie.id}
-                      className="w-[42vw] max-w-[190px] shrink-0 snap-start sm:w-[190px]"
-                    >
-                      <MovieCards
-                        movie={movie}
-                        watchlist={watchlist}
-                        handleAddToWatchlist={handleAddToWatchlist}
-                        handleRemoveFromWatchlist={handleRemoveFromWatchlist}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
+              <DeferredSection
+                rootMargin="300px 0px"
+                fallback={<div className="mt-7"><RowSkeleton /></div>}
+              >
+                <CollectionRow
+                  collection={collection}
+                  watchlist={watchlist}
+                  handleAddToWatchlist={handleAddToWatchlist}
+                  handleRemoveFromWatchlist={handleRemoveFromWatchlist}
+                />
+              </DeferredSection>
             </section>
           ))}
         </div>

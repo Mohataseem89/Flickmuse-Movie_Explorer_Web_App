@@ -1,0 +1,37 @@
+# Cloudflare Workers Static Assets headers (the Cloudflare equivalent of the
+# "headers" block in vercel.json, which Cloudflare does not read).
+# Applies to static files only; /api/tmdb sets its own headers in the Worker.
+
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Strict-Transport-Security: max-age=31536000
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+# Vite emits content-hashed files here, so they can be cached "forever".
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# The service worker must always be revalidated so updates roll out.
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/favicon.ico
+  Cache-Control: public, max-age=604800
+/favicon.svg
+  Cache-Control: public, max-age=604800
+/favicon-32.png
+  Cache-Control: public, max-age=604800
+/favicon-48.png
+  Cache-Control: public, max-age=604800
+/favicon-96.png
+  Cache-Control: public, max-age=604800
+/apple-touch-icon.png
+  Cache-Control: public, max-age=604800
+/icon-192.png
+  Cache-Control: public, max-age=604800
+/icon-512.png
+  Cache-Control: public, max-age=604800
+/og-flickmuse.png
+  Cache-Control: public, max-age=604800

@@ -1,6 +1,8 @@
 import { Film } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { getPopularMovies } from "../api/tmdb";
+import { useTmdbQuery } from "../hooks/useTmdbQuery";
+import LoadError from "./LoadError";
 import MovieCards from "./MovieCards";
 import Pagination from "./Pagination";
 import ResultsAnnouncer from "./ResultsAnnouncer";
@@ -18,11 +20,13 @@ const Movies = ({
   handleRemoveFromWatchlist,
   watchlist,
 }) => {
-  const [movies, setMovies] = useState([]);
   const [pageNo, setPageNo] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [retryCount, setRetryCount] = useState(0);
+  const { data, loading, error, retry, cooldownSeconds } = useTmdbQuery(
+    (signal) => getPopularMovies(pageNo, signal),
+    pageNo,
+    { label: "popular movies" }
+  );
+  const movies = data?.results ?? [];
 
   const handlePreviousPage = () => {
     if (pageNo > 1) {
@@ -39,27 +43,6 @@ const Movies = ({
       .getElementById("popular-movies")
       ?.scrollIntoView({ behavior: "smooth" });
   };
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    const fetchMovies = async () => {
-      try {
-        setLoading(true);
-        setError("");
-        const data = await getPopularMovies(pageNo, controller.signal);
-        setMovies(data.results ?? []);
-      } catch (requestError) {
-        if (requestError.name === "AbortError") return;
-        setError(requestError.message || "Unable to load movies.");
-      } finally {
-        if (!controller.signal.aborted) setLoading(false);
-      }
-    };
-
-    fetchMovies();
-    return () => controller.abort();
-  }, [pageNo, retryCount]);
 
   return (
     <section
@@ -99,20 +82,12 @@ const Movies = ({
         </div>
 
         {error ? (
-          <div className="mx-auto max-w-lg rounded-3xl border border-red-500/20 bg-red-950/20 p-8 text-center sm:p-10">
-            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/10 text-red-400">
-              <Film className="h-6 w-6" aria-hidden="true" />
-            </span>
-            <h3 className="mt-5 text-xl font-bold">Movies could not be loaded</h3>
-            <p className="mt-2 text-sm leading-6 text-gray-400">{error}</p>
-            <button
-              type="button"
-              onClick={() => setRetryCount((count) => count + 1)}
-              className="mt-6 min-h-11 rounded-xl bg-red-600 px-5 font-bold text-white transition-colors hover:bg-red-500"
-            >
-              Try again
-            </button>
-          </div>
+          <LoadError
+            error={error}
+            onRetry={retry}
+            cooldownSeconds={cooldownSeconds}
+            loading={loading}
+          />
         ) : (
           <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 sm:gap-x-5 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
             {loading

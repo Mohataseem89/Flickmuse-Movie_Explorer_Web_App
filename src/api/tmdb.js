@@ -1,32 +1,208 @@
 const IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
-const DEFAULT_CACHE_TIME = 5 * 60 * 1000;
+const MINUTE = 60 * 1000;
+const HOUR = 60 * MINUTE;
+const DEFAULT_CACHE_TIME = 5 * MINUTE;
+const LIST_CACHE_TIME = 10 * MINUTE;
+const LIST_STALE_TIME = 24 * HOUR;
+
+const MAX_CONCURRENT_REQUESTS = 3;
+const MAX_ATTEMPTS = 3; // first try + 2 retries
+const MAX_RETRY_WAIT_MS = 8000; // longer Retry-After values are surfaced to the UI instead
+const DEFAULT_RATE_LIMIT_SECONDS = 8;
+const MAX_COOLDOWN_SECONDS = 60;
+const REQUEST_TIMEOUT_MS = 15000;
+
+const PERSIST_PREFIX = "flickmuse:tmdb-cache:v2:";
+const PERSIST_LIMIT = 24;
+const PERSIST_MAX_CHARS = 200000;
+
+// Only small, shared list endpoints are persisted for stale fallback.
+const LIST_PATH = /^\/(trending\/(movie|tv)\/week|movie\/(popular|now_playing|top_rated)|tv\/(popular|on_the_air|top_rated)|discover\/(movie|tv)|genre\/(movie|tv)\/list)$/;
+// Anything a person is actively waiting on jumps ahead of background lists.
+const INTERACTIVE_PATH = /^\/(search\/|trending\/|(movie|tv)\/\d|person\/|collection\/)/;
+
 const responseCache = new Map();
 const inFlightRequests = new Map();
-const SESSION_CACHE_PREFIX = "flickmuse:tmdb-cache:v1:";
-const SESSION_CACHE_LIMIT = 30;
+let cooldownUntil = 0; // epoch ms, shared by every request after a 429
 
-function readSessionCache(requestKey) {
+/**
+ * Error thrown for every failed TMDb request.
+ * kind: "rate_limit" | "network" | "timeout" | "api"
+ */
+export class TmdbError extends Error {
+  constructor(message, { kind = "api", status = 0, retryAfter = null } = {}) {
+    super(message);
+    this.name = "TmdbError";
+    this.kind = kind;
+    this.status = status;
+    this.retryAfter = retryAfter; // seconds, when known
+  }
+}
+
+function messageFor(kind, status) {
+  if (kind === "rate_limit") {
+    return "TMDb is receiving too many requests right now. Please wait a moment and try again.";
+  }
+  if (kind === "timeout") {
+    return "TMDb took too long to respond. Please check your connection and try again.";
+  }
+  if (kind === "network") {
+    return "FlickMuse could not reach the movie data service. Please check your connection and try again.";
+  }
+  return "The movie data service returned an error (status " + status + "). Please try again shortly.";
+}
+
+/** Seconds until the shared rate-limit cooldown ends (0 when not cooling down). */
+export function getTmdbCooldownSeconds() {
+  return Math.max(0, Math.ceil((cooldownUntil - Date.now()) / 1000));
+}
+
+function startCooldown(seconds) {
+  const bounded = Math.min(MAX_COOLDOWN_SECONDS, Math.max(1, seconds));
+  cooldownUntil = Math.max(cooldownUntil, Date.now() + bounded * 1000);
+}
+
+function parseRetryAfter(value) {
+  if (!value) return null;
+  const seconds = Number(value);
+  if (Number.isFinite(seconds)) return Math.max(0, seconds);
+  const date = Date.parse(value);
+  return Number.isNaN(date) ? null : Math.max(0, (date - Date.now()) / 1000);
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+// ---------------------------------------------------------------------------
+// Persistent stale-data store (localStorage). Optional: failures are ignored.
+// ---------------------------------------------------------------------------
+function readPersisted(requestKey) {
   try {
-    const cached = window.sessionStorage.getItem(SESSION_CACHE_PREFIX + requestKey);
-    if (!cached) return null;
-    const value = JSON.parse(cached);
-    if (!value?.expiresAt || value.expiresAt <= Date.now()) {
-      window.sessionStorage.removeItem(SESSION_CACHE_PREFIX + requestKey);
+    const raw = window.localStorage.getItem(PERSIST_PREFIX + requestKey);
+    if (!raw) return null;
+    const value = JSON.parse(raw);
+    if (!value?.staleUntil || value.staleUntil <= Date.now()) {
+      window.localStorage.removeItem(PERSIST_PREFIX + requestKey);
       return null;
     }
     return value;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
-function writeSessionCache(requestKey, value) {
+function writePersisted(requestKey, entry) {
   try {
-    const storage = window.sessionStorage;
-    storage.setItem(SESSION_CACHE_PREFIX + requestKey, JSON.stringify(value));
-    const keys = Object.keys(storage).filter((key) => key.startsWith(SESSION_CACHE_PREFIX));
-    if (keys.length > SESSION_CACHE_LIMIT) {
-      keys.slice(0, keys.length - SESSION_CACHE_LIMIT).forEach((key) => storage.removeItem(key));
+    const serialized = JSON.stringify(entry);
+    if (serialized.length > PERSIST_MAX_CHARS) return;
+    const storage = window.localStorage;
+    storage.setItem(PERSIST_PREFIX + requestKey, serialized);
+
+    const keys = Object.keys(storage).filter((key) => key.startsWith(PERSIST_PREFIX));
+    if (keys.length > PERSIST_LIMIT) {
+      const dated = keys.map((key) => {
+        try { return [key, JSON.parse(storage.getItem(key))?.savedAt || 0]; } catch { return [key, 0]; }
+      }).sort((a, b) => a[1] - b[1]);
+      dated.slice(0, keys.length - PERSIST_LIMIT).forEach(([key]) => storage.removeItem(key));
     }
   } catch { /* Storage is an optional performance enhancement. */ }
+}
+
+// ---------------------------------------------------------------------------
+// Request queue: caps concurrency, runs interactive requests first and holds
+// everything while the shared rate-limit cooldown is active.
+// ---------------------------------------------------------------------------
+const queue = [];
+let activeRequests = 0;
+let sequence = 0;
+let pumpTimer = null;
+
+function pumpQueue() {
+  if (pumpTimer) { window.clearTimeout(pumpTimer); pumpTimer = null; }
+
+  const waitMs = cooldownUntil - Date.now();
+  if (waitMs > 0 && queue.length > 0) {
+    pumpTimer = window.setTimeout(pumpQueue, waitMs + 50);
+    return;
+  }
+
+  while (activeRequests < MAX_CONCURRENT_REQUESTS && queue.length > 0) {
+    let best = 0;
+    for (let index = 1; index < queue.length; index++) {
+      const a = queue[index];
+      const b = queue[best];
+      if (a.priority < b.priority || (a.priority === b.priority && a.order < b.order)) best = index;
+    }
+    const [job] = queue.splice(best, 1);
+    activeRequests++;
+    job.run().then(job.resolve, job.reject).finally(() => {
+      activeRequests--;
+      pumpQueue();
+    });
+  }
+}
+
+function enqueue(run, priority) {
+  return new Promise((resolve, reject) => {
+    queue.push({ run, resolve, reject, priority, order: sequence++ });
+    pumpQueue();
+  });
+}
+
+// One network operation with bounded retries. 429 responses start the shared
+// cooldown and are only retried when TMDb asks for a short wait; otherwise the
+// error (with its retryAfter) goes straight to the UI.
+async function fetchJsonWithRetry(url) {
+  let lastError = null;
+
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    const remaining = cooldownUntil - Date.now();
+    if (remaining > 0) await sleep(Math.min(remaining, MAX_RETRY_WAIT_MS));
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    let fatal = null;
+    let waitMs = 0;
+
+    try {
+      const response = await fetch(url, { signal: controller.signal });
+
+      if (response.ok) return await response.json();
+
+      if (response.status === 429) {
+        const retryAfter = parseRetryAfter(response.headers.get("Retry-After")) ?? DEFAULT_RATE_LIMIT_SECONDS;
+        startCooldown(retryAfter);
+        lastError = new TmdbError(messageFor("rate_limit", 429), {
+          kind: "rate_limit",
+          status: 429,
+          retryAfter: Math.ceil(Math.min(retryAfter, MAX_COOLDOWN_SECONDS)),
+        });
+        if (retryAfter * 1000 > MAX_RETRY_WAIT_MS) fatal = lastError;
+        else waitMs = retryAfter * 1000 + Math.random() * 400;
+      } else if (response.status >= 500) {
+        lastError = new TmdbError(messageFor("api", response.status), { kind: "api", status: response.status });
+        waitMs = 600 * 2 ** attempt + Math.random() * 300;
+      } else {
+        // 4xx other than 429 will not succeed on retry.
+        fatal = new TmdbError(messageFor("api", response.status), { kind: "api", status: response.status });
+      }
+    } catch (error) {
+      if (error?.name === "AbortError") {
+        fatal = new TmdbError(messageFor("timeout"), { kind: "timeout" });
+      } else {
+        lastError = new TmdbError(messageFor("network"), { kind: "network" });
+        waitMs = 600 * 2 ** attempt + Math.random() * 300;
+      }
+    } finally {
+      window.clearTimeout(timeout);
+    }
+
+    if (fatal) throw fatal;
+    if (attempt < MAX_ATTEMPTS - 1) await sleep(waitMs);
+  }
+
+  throw lastError || new TmdbError(messageFor("network"), { kind: "network" });
 }
 
 function waitForRequest(request, signal) {
@@ -55,10 +231,43 @@ function waitForRequest(request, signal) {
   });
 }
 
+// Shared, de-duplicated network request. Every caller for the same key awaits
+// the same promise; component aborts never cancel it for other callers.
+function fetchAndStore(requestKey, path, publicParams, { cacheTime, staleTime, priority }) {
+  let request = inFlightRequests.get(requestKey);
+  if (request) return request;
+
+  const url = new URL("/api/tmdb", window.location.origin);
+  url.search = new URLSearchParams({ path, ...Object.fromEntries(publicParams) }).toString();
+
+  request = enqueue(() => fetchJsonWithRetry(url), priority)
+    .then((data) => {
+      const now = Date.now();
+      const entry = { data, expiresAt: now + cacheTime, staleUntil: now + Math.max(cacheTime, staleTime), savedAt: now };
+      responseCache.set(requestKey, entry);
+      if (responseCache.size > 100) responseCache.delete(responseCache.keys().next().value);
+      if (staleTime > 0) writePersisted(requestKey, entry);
+      return data;
+    })
+    .finally(() => {
+      inFlightRequests.delete(requestKey);
+    });
+
+  inFlightRequests.set(requestKey, request);
+  return request;
+}
+
 async function tmdbRequest(
   path,
-  { params = {}, signal, cacheTime = DEFAULT_CACHE_TIME } = {}
+  { params = {}, signal, cacheTime, staleTime, priority } = {}
 ) {
+  const isList = LIST_PATH.test(path);
+  const options = {
+    cacheTime: cacheTime ?? (isList ? LIST_CACHE_TIME : DEFAULT_CACHE_TIME),
+    staleTime: staleTime ?? (isList ? LIST_STALE_TIME : 0),
+    priority: priority ?? (INTERACTIVE_PATH.test(path) ? 0 : 1),
+  };
+
   const normalizedParams = Object.fromEntries(
     Object.entries(params).filter(
       ([, value]) => value !== undefined && value !== null && value !== ""
@@ -70,62 +279,31 @@ async function tmdbRequest(
     ...normalizedParams,
   });
   const requestKey = path + "?" + publicParams.toString();
-  const cached = responseCache.get(requestKey) || readSessionCache(requestKey);
 
-  if (cached && cached.expiresAt > Date.now()) {
-    return waitForRequest(Promise.resolve(cached.data), signal);
+  let entry = responseCache.get(requestKey);
+  if (!entry && options.staleTime > 0) {
+    entry = readPersisted(requestKey);
+    if (entry) responseCache.set(requestKey, entry);
   }
 
-  let request = inFlightRequests.get(requestKey);
-
-  if (!request) {
-    const url = new URL("/api/tmdb", window.location.origin);
-    url.search = new URLSearchParams({
-      path,
-      ...Object.fromEntries(publicParams),
-    }).toString();
-    const requestController = new AbortController();
-    const requestTimeout = window.setTimeout(
-      () => requestController.abort(),
-      15000
-    );
-
-    request = fetch(url, { signal: requestController.signal })
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error(
-            "TMDb request failed with status " + response.status + "."
-          );
-        }
-
-        const data = await response.json();
-        responseCache.set(requestKey, {
-          data,
-          expiresAt: Date.now() + cacheTime,
-        });
-        writeSessionCache(requestKey, { data, expiresAt: Date.now() + cacheTime });
-
-        if (responseCache.size > 100) {
-          responseCache.delete(responseCache.keys().next().value);
-        }
-
-        return data;
-      })
-      .catch((error) => {
-        if (error.name === "AbortError") {
-          throw new Error(
-            "TMDb took too long to respond. Please check your connection and try again."
-          );
-        }
-        throw error;
-      })
-      .finally(() => {
-        window.clearTimeout(requestTimeout);
-        inFlightRequests.delete(requestKey);
-      });
-
-    inFlightRequests.set(requestKey, request);
+  const now = Date.now();
+  if (entry && entry.expiresAt > now) {
+    return waitForRequest(Promise.resolve(entry.data), signal);
   }
+
+  const canServeStale = Boolean(entry && entry.staleUntil > now);
+
+  // Expired but still usable: show it now, refresh quietly in the background.
+  if (canServeStale && options.staleTime > 0) {
+    fetchAndStore(requestKey, path, publicParams, options).catch(() => {});
+    return waitForRequest(Promise.resolve(entry.data), signal);
+  }
+
+  const request = fetchAndStore(requestKey, path, publicParams, options).catch((error) => {
+    // TMDb unavailable or rate limited: prefer real (older) data over an error.
+    if (canServeStale) return entry.data;
+    throw error;
+  });
 
   return waitForRequest(request, signal);
 }

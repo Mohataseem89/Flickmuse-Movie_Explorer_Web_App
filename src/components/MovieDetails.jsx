@@ -434,7 +434,7 @@ export default function MovieDetails({
                     </div>
                   </div>
                 ))}
-                <p className="text-xs leading-5 text-gray-500">
+                <p className="text-xs leading-5 text-gray-400">
                   Streaming availability data provided by JustWatch via TMDB. Provider links open a provider search when a verified search destination is available; otherwise they open TMDB watch options.
                 </p>
               </div>

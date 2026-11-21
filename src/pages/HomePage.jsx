@@ -77,7 +77,7 @@ export default function HomePage(props) {
           </a>
         </div>
       </section>
-      <DeferredSection fallback={<div className="min-h-[420px] bg-[#080a0f]" aria-hidden="true" />}><Movies {...props} /></DeferredSection>
+      <DeferredSection rootMargin="200px 0px" fallback={<div className="min-h-[420px] bg-[#080a0f]" aria-hidden="true" />}><Movies {...props} /></DeferredSection>
       <section className="border-t border-white/[0.07] bg-[#0b0e14] py-16 text-white sm:py-20" aria-labelledby="about-flickmuse-title">
         <div className="mx-auto max-w-[1600px] px-5 sm:px-8">
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-red-400">About FlickMuse</p>
